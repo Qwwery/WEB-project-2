@@ -30,6 +30,7 @@ def create_user(surname, name, age, position, speciality, address, email, hashed
     except Exception:
         raise Exception('Вы передали не все параметры!!!')
 
+
 def add_job(team_leader, job, work_size, collaborators, start_date=None, end_date=None, is_finished=None):
     db_sess = db_session.create_session()
     jobs = Jobs()
@@ -49,6 +50,8 @@ def add_job(team_leader, job, work_size, collaborators, start_date=None, end_dat
         db_sess.commit()
     except Exception:
         raise Exception('Вы передали не все обязательные параметры!!!')
+
+
 def main():
     db_session.global_init("db/mars_explorer.db")
     create_user('Scott', 'Ridley', 21, 'captain', 'research engineer', 'module_1', 'scott_chief@mars.org', '1111')
