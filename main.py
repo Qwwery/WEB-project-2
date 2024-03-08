@@ -28,7 +28,7 @@ def create_user(surname, name, age, position, speciality, address, email, hashed
         db_sess.commit()
         print('ok')
     except Exception:
-        raise Exception('Вы передали не все параметры!!!')
+        print('Вы передали не все обязательные параметры!!!')
 
 
 def add_job(team_leader, job, work_size, collaborators, start_date=None, end_date=None, is_finished=None):
@@ -49,7 +49,7 @@ def add_job(team_leader, job, work_size, collaborators, start_date=None, end_dat
         db_sess.add(jobs)
         db_sess.commit()
     except Exception:
-        raise Exception('Вы передали не все обязательные параметры!!!')
+        print('Вы передали не все обязательные параметры!!!')
 
 
 def main():
