@@ -19,5 +19,5 @@ class User(SqlAlchemyBase):
     address = sqlalchemy.Column(sqlalchemy.String)
     email = sqlalchemy.Column(sqlalchemy.String, unique=True)
     hashed_password = sqlalchemy.Column(sqlalchemy.String)
-    modified_date = sqlalchemy.Column(sqlalchemy.DateTime)
+    modified_date = sqlalchemy.Column(sqlalchemy.DateTime, default=datetime.datetime.now())
 
