@@ -9,7 +9,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'me_secret_key'
 
 
-def create_user(surname, name, age, position, speciality, address, email, hashed_password,
+def create_user(surname, name, age, position, speciality, adress, email, hashed_password,
                 modified_date=None):
     db_sess = db_session.create_session()
     user = User()
