@@ -158,7 +158,7 @@ def logout():
 def sms():
     form = SmsForm()
     if request.method == 'GET':
-        return render_template(template_name_or_list='sms.html', form=form)
+        return render_template(template_name_or_list='sms.html', form=form, title='sms')
     else:
         if 'btn_submit' in request.form:  # не релизнуто, пока что просто стирает
             form.text.data = ""
@@ -169,7 +169,7 @@ def sms():
         elif 'btn_translate_russ' in request.form:
             form.text.data = make_translate(form.text.data, eng_to_rus)
             print('btn_translate_russ was pressed')
-        return render_template(template_name_or_list='sms.html', form=form)
+        return render_template(template_name_or_list='sms.html', form=form, title='sms')
 
 
 @app.route('/search_user')
