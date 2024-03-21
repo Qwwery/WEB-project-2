@@ -1,12 +1,25 @@
 import datetime
 
-from flask import Flask
+from flask import Flask, render_template, request, redirect
 from data.users import User
-from data.jobs import Jobs
+from data.news import News
 from data import db_session
+from flask_login import LoginManager, login_user, current_user, logout_user, login_required
+from forms.login import LoginForm
+from forms.reg_form import RegForm
+from forms.news_form import NewsForm
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'me_secret_key'
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    db_sess = db_session.create_session()
+    return db_sess.query(User).get(user_id)
 
 
 def create_user(surname, name, age, position, speciality, address, email, hashed_password,
@@ -31,37 +44,117 @@ def create_user(surname, name, age, position, speciality, address, email, hashed
         print('Вы передали не все обязательные параметры!!!')
 
 
-def add_job(team_leader, job, work_size, collaborators, start_date=None, end_date=None, is_finished=None):
+def add_news(author, title, text, private):
     db_sess = db_session.create_session()
-    jobs = Jobs()
-
-    jobs.team_leader = team_leader
-    jobs.job = job
-    jobs.work_size = work_size
-    jobs.collaborators = collaborators
-    if start_date:
-        jobs.start_date = start_date
-    if end_date:
-        jobs.end_date = end_date
-    if is_finished:
-        jobs.is_finished = is_finished
-    try:
-        db_sess.add(jobs)
-        db_sess.commit()
-    except Exception:
-        print('Вы передали не все обязательные параметры!!!')
+    news = News()
+    news.author = author
+    news.title = title
+    news.text = text
+    news.private = private
 
 
 def main():
     db_session.global_init("db/mars_explorer.db")
-    create_user('Scott', 'Ridley', 21, 'captain', 'research engineer', 'module_1', 'scott_chief@mars.org', '1111')
-    create_user('Сахаров', 'Илья', 15, 'admin=)', 'крутой', 'module_3000', 'qwe@qwe.qwe', '1112')
-    create_user('Ларионов', 'Валера', 17, 'zam.admin=)', 'крутой', 'module_3001', 'qw1e@qwe1.qwe1', '1113')
-    create_user('Мотовилов', 'Григорий', 16, 'zam.zam.admin=)', 'почти крутой', 'нет', 'qwe99@qwe99.qwe99', '9999')
-
-    add_job(1, 'deployment of residential modules 1 and 2', 15, '2, 3')
     app.run()
 
 
+@app.route('/')
+def first():
+    db_sess = db_session.create_session()
+    news = db_sess.query(News).all()
+
+    authors = []
+    for new in news:
+        authors.append(db_sess.query(User).filter(User.id == new.author).first().name)
+    info = {
+        'news': news,
+        'authors': authors
+    }
+    return render_template('news.html', **info, title='SBK')
+
+
+@app.route('/registration', methods=['GET', 'POST'])
+def registration():
+    form = RegForm()
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        check_user = db_sess.query(User)
+        if check_user.filter(User.email == form.email.data).first():
+            return render_template('registration.html', message="Пользователь с такой почтой уже существует", form=form,
+                                   title='Регистрация')
+
+        user = User(
+            name=form.name.data,
+            surname=form.surname.data,
+            email=form.email.data,
+            age=form.age.data
+        )
+        user.set_password(form.password.data)
+        db_sess.add(user)
+        db_sess.commit()
+
+        user_info = db_sess.query(User).filter(User.email == form.email.data).first()
+        login_user(user_info, remember=form.remember_me.data)
+        return redirect('/')
+    return render_template('registration.html', form=form, title='Регистрация')
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        user = db_sess.query(User).filter(User.email == form.email.data).first()
+        if not user:
+            return render_template('login.html',
+                                   message="Неправильный логин",
+                                   form=form, title='Вход')
+        elif not user.check_password(form.password.data):
+            user.set_password(form.password.data)
+            return render_template('login.html',
+                                   message="Неправильный пароль",
+                                   form=form, title='Вход')
+        login_user(user, remember=form.remember_me.data)
+        return redirect("/")
+
+    return render_template('login.html', title='Авторизация', form=form)
+
+
+@app.route('/new_news', methods=['GET', 'POST'])
+def new_news():
+    form = NewsForm()
+    print(form.data)
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        user_id = db_sess.query(User).filter(User.email == current_user.email).first().id
+        news = News(
+            author=user_id,
+            name=form.name.data,
+            text=form.text.data,
+            private=form.private.data
+        )
+        db_sess.add(news)
+        db_sess.commit()
+        return redirect("/")
+    return render_template('new_news.html', form=form, tite='Новая новость')
+
+
+@app.route('/home/<name>', methods=['GET', 'POST'])
+def home(name):
+    if current_user.name == name:
+        return render_template('home.html')
+
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect("/")
+
 if __name__ == '__main__':
     main()
+
+
+
+
+               

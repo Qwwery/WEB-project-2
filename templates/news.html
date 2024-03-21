@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<form action="" class="login_form">
+    {% if current_user.is_authenticated %}
+        <a href="/new_news" class="btn btn-warning">Добавить новость</a>
+    {% else %}
+        <a href="/login"><i class="bi bi-person-add"></i> Войдите в аккаунт </a><a>чтобы просматривать скрытые новости!</a>
+    {% endif %}
+
+    {% for new in news %}
+    <h1 align="center">{{ new.name }}</h1>
+    <h4>{{ new.text }}</h4>
+    <p>{{ new.data }}</p>
+    <p align="right">{{ authors[loop.index - 1] }}</p>
+    <hr>
+    {% endfor %}
+    <h1 align="center">Вы дошли до конца!</h1>
+</form>
+{% endblock %}

@@ -1,0 +1,77 @@
+aside {
+    float: left;
+    position: fixed;
+    background: #8a8a8a;
+    width: 14%;
+    padding: 2.5%;
+    height: 100vh;
+    border-right: 5px solid #4d4d4d;
+    border-bottom: solid;
+}
+form.login_form {
+    max-width: 800px;
+    background: peachpuff;
+    border-radius: 4px;
+    margin-left: 40%;
+    padding: 10px;
+    border-style: solid;
+    border-color: black;
+}
+
+.color_fon_registration {
+    background-color: #d1fcfc;
+}
+
+aside {
+    float: left;
+    position: fixed;
+    background: #8a8a8a;
+    width: 14%;
+    padding: 2.5%;
+    height: 100vh;
+    border-right: 5px solid #4d4d4d;
+    border-bottom: solid;
+}
+
+aside .logo {
+    font-size: 40px;
+    margin-left: 10px;
+    font-weight: bold;
+    position: relative;
+}
+
+.scrole_sms {
+    width: 1000px;
+    height: 500px;
+    overflow-x: scroll;
+    overflow-y: scroll;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+form.sms_login_form {
+    max-width: 1000px;
+    background: peachpuff;
+    border-radius: 4px;
+    margin-left: auto;
+    margin-right: auto;
+    border-style: solid;
+    border-color: black;
+}
+
+.frame_sms {
+    border-style: solid;
+    border-color: black;
+    border-radius: 4px;
+    padding-left: 4px;
+    padding-right: 4px;
+}
+
+.center_label{
+    text-align: center;
+}
+
+.btn_sms{
+    padding-left: 10px;
+    padding-top: 3px;
+}

@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block content %}
+<form action="" method="post" class="login_form">
+    <h4>Привет, {{ current_user.name }}! это ваша домашняя страница!</h4>
+
+    <a href="/logout" class="btn btn-warning">Выйти из аккаунта</a>
+</form>
+{% endblock %}
