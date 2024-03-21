@@ -8,9 +8,11 @@ from flask_login import LoginManager, login_user, current_user, logout_user, log
 from forms.login import LoginForm
 from forms.reg_form import RegForm
 from forms.news_form import NewsForm
+from forms.sms_form import SmsForm
+from translate import eng_to_rus, rus_to_eng, make_translate
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'me_secret_key'
+app.config['SECRET_KEY'] = 'sdasdgaWFEKjwEKHFNLk;jnFKLJNpj`1`p142QEW:jqwegpoqjergplqwejg;lqeb'
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -54,8 +56,8 @@ def add_news(author, title, text, private):
 
 
 def main():
-    db_session.global_init("db/mars_explorer.db")
-    app.run()
+    db_session.global_init("db/db.db")
+    app.run(debug=True)
 
 
 @app.route('/')
@@ -150,6 +152,48 @@ def home(name):
 def logout():
     logout_user()
     return redirect("/")
+
+
+@app.route('/sms', methods=['GET', 'POST'])
+def sms():
+    form = SmsForm()
+    if request.method == 'GET':
+        return render_template(template_name_or_list='sms.html', form=form)
+    else:
+        if 'btn_submit' in request.form:  # не релизнуто, пока что просто стирает
+            form.text.data = ""
+            print('btn_submit was pressed')
+        elif 'btn_translate_eng' in request.form:
+            form.text.data = make_translate(form.text.data, rus_to_eng)
+            print('btn_translate_eng was pressed')
+        elif 'btn_translate_russ' in request.form:
+            form.text.data = make_translate(form.text.data, eng_to_rus)
+            print('btn_translate_russ was pressed')
+        return render_template(template_name_or_list='sms.html', form=form)
+
+
+@app.route('/search_user')
+def search_user():
+    db_sess = db_session.create_session()
+    users = db_sess.query(User).filter(User.id != current_user.id).all()
+
+    info = {
+        'users': users
+    }
+
+    return render_template('search_user.html', **info, title='Поиск друзей')
+
+
+@app.route('/user/<int:id>', methods=['GET', 'POST'])
+def user(id):
+    db_sess = db_session.create_session()
+    user = db_sess.query(User).filter(User.id == id).first()
+
+    info = {
+        'user': user
+    }
+
+    return render_template('user_id.html', **info, title=user.name)
 
 
 if __name__ == '__main__':
