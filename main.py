@@ -56,7 +56,7 @@ def add_news(author, title, text, private):
 
 
 def main():
-    db_session.global_init("db/mars_explorer.db")
+    db_session.global_init("db/db.db")
     app.run(debug=True)
 
 
@@ -170,6 +170,30 @@ def sms():
             form.text.data = make_translate(form.text.data, eng_to_rus)
             print('btn_translate_russ was pressed')
         return render_template(template_name_or_list='sms.html', form=form)
+
+
+@app.route('/search_user')
+def search_user():
+    db_sess = db_session.create_session()
+    users = db_sess.query(User).filter(User.id != current_user.id).all()
+
+    info = {
+        'users': users
+    }
+
+    return render_template('search_user.html', **info, title='Поиск друзей')
+
+
+@app.route('/user/<int:id>', methods=['GET', 'POST'])
+def user(id):
+    db_sess = db_session.create_session()
+    user = db_sess.query(User).filter(User.id == id).first()
+
+    info = {
+        'user': user
+    }
+
+    return render_template('user_id.html', **info, title=user.name)
 
 
 if __name__ == '__main__':
