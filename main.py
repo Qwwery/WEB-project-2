@@ -8,6 +8,7 @@ from forms.reg_form import RegForm
 from forms.news_form import NewsForm
 from forms.sms_form import SmsForm
 from translate import eng_to_rus, rus_to_eng, make_translate
+from data.friends import Friends
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'sdasdgaWFEKjwEKHFNLk;jnFKLJNpj`1`p142QEW:jqwegpoqjergplqwejg;lqeb'
@@ -191,7 +192,42 @@ def user(id):
         'user': user
     }
 
-    return render_template('user_id.html', **info, title=user.name)
+    if request.method == 'POST':
+        if 'add_friend' in request.form:
+            data_friend = [current_user.id, id]
+            print(data_friend)
+
+            check_blocked = db_sess.query(Friends).filter(Friends.first_id == id and Friends.second_id == current_user.id).first()
+            if check_blocked and check_blocked.mans_attitude == 'заблокировали': # перед отправкой дружбы проверяем, не заблокирован ли отправитель
+                return render_template('user_id.html', **info, title=user.name, text='Пользователь вас заблокировал')
+
+            check_friend = db_sess.query(Friends).filter(Friends.first_id == current_user.id and Friends.second_id == id).first()
+            if not check_friend:  # если это первый запрос на дружбу и нет блокировок
+                first_zapic = Friends()
+                first_zapic.first_id = current_user.id
+                first_zapic.second_id = id
+                first_zapic.mans_attitude = 'отправленный запрос текущим пользователем'
+                db_sess.add(first_zapic)
+
+                second_zapic = Friends()
+                second_zapic.first_id = id
+                second_zapic.second_id = current_user.id
+                second_zapic.mans_attitude = 'отправленный запрос текущему пользователю'
+
+                db_sess.add(second_zapic)
+
+                db_sess.commit()
+                return render_template('user_id.html', **info, title=user.name, text='Запрос был отправлен')
+
+            else:
+                if check_friend.mans_attitude == 'заблокирован':  # пользователь заблокирован текущим пользователем, отправить никак
+                    return render_template('user_id.html', **info, title=user.name, text='Пользователь вами заблокирован')
+
+                elif check_friend.mans_attitude == 'отправленный запрос текущим пользователем':  # запрос на ожидании
+                    return render_template('user_id.html', **info, title=user.name, text='Запрос уже был отправлен')
+
+
+    return render_template('user_id.html', **info, title=user.name, text='')
 
 
 if __name__ == '__main__':
