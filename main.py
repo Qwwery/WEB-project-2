@@ -1,5 +1,3 @@
-import datetime
-
 from flask import Flask, render_template, request, redirect
 from data.users import User
 from data.news import News
@@ -72,7 +70,7 @@ def first():
         'news': news,
         'authors': authors
     }
-    return render_template('news.html', **info, title='SBK')
+    return render_template('news.html', **info, title='NS')
 
 
 @app.route('/registration', methods=['GET', 'POST'])

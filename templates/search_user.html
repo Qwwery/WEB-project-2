@@ -3,7 +3,8 @@
 {% block content %}
 <form action="" class="login_form">
     {% for user in users %}
-    <a href="user/{{ user.id }}">{{ user.name }}</a>
+    <a href="user/{{ user.id }}">{{ user.name }}</a><br>
+    <hr>
     {% endfor %}
 </form>
 {% endblock %}

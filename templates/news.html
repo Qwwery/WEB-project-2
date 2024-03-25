@@ -3,6 +3,7 @@
 {% block content %}
 
 <form action="" class="login_form">
+    <p>Проверка</p>
     {% if current_user.is_authenticated %}
         <a href="/new_news" class="btn btn-warning">Добавить новость</a>
     {% else %}
