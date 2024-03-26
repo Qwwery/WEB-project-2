@@ -27,7 +27,7 @@ def load_user(user_id):
 
 def main():
     db_session.global_init("db/db.db")
-    app.run()
+    app.run(debug=True)
 
 
 @app.route('/')
@@ -145,10 +145,16 @@ def sms():
 @app.route('/search_user')
 def search_user():
     db_sess = db_session.create_session()
-    users = db_sess.query(User).filter(User.id != current_user.id).all()
+    all_users = db_sess.query(User).filter(User.id != current_user.id).all()
+
+    not_friends = []
+    for elem in all_users:
+        check_users = db_sess.query(Friends).filter(Friends.first_id == current_user.id, Friends.second_id == elem.id).first()
+        if not check_users or check_users.mans_attitude != 'friends':
+            not_friends.append(elem)
 
     info = {
-        'users': users
+        'users': not_friends
     }
 
     return render_template('search_user.html', **info, title='Поиск друзей')
@@ -214,9 +220,9 @@ def user(id):
     try:
         check_friend = db_sess.query(Friends).filter(Friends.first_id == current_user.id, Friends.second_id == id).first()
         if check_friend.mans_attitude == 'received':
-            return render_template('user_id.html', **info, title=user.name, text='Этот пользователь хочет с вами дружить!', button_info='sumbit')
-    except AttributeError:
-        return 'Этого пользователя пока нет, или это вы:)'
+                return render_template('user_id.html', **info, title=user.name, text='Этот пользователь хочет с вами дружить!', button_info='sumbit')
+    except Exception:
+        return render_template('user_id.html', **info, title=user.name, text='')
     return render_template('user_id.html', **info, title=user.name, text='')
 
 
@@ -231,8 +237,8 @@ def friend_requests():
         users = []
     else:
         for user in friend_requests:
-            print(user.id)
-            users = db_sess.query(User).filter(User.id == user.id).all()
+            print(user)
+            users = db_sess.query(User).filter(User.id == user.second_id).all()
     info = {
         'users': users,
         'title': 'Заявки в друзья'

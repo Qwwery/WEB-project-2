@@ -11,4 +11,5 @@ class Friends(SqlAlchemyBase):
     mans_attitude = sqlalchemy.Column(sqlalchemy.String)
 
     def __repr__(self):
-        return f"first: {self.first_id}; second: {self.second_id}; attitude: {self.mans_attitude}"
+        return f"<Friend> id: {self.bundle_id}; first_id: {self.first_id}; second_id: {self.second_id};" \
+               f" mans_attitude: {self.mans_attitude}"
