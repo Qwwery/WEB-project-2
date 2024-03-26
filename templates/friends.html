@@ -1,8 +1,10 @@
 {% extends "base.html" %}
 
 {% block content %}
-{% for user in friends %}
-    <p align="center"><a href="user/{{ user.id }}">{{ user.name }}</a><br></p>
+<form action="" class="login_form">
+    {% for user in friends %}
+        <p align="center"><a href="user/{{ user.id }}">{{ user.name }}</a><br></p>
 
-{% endfor %}}
+    {% endfor %}
+</form>
 {% endblock %}
