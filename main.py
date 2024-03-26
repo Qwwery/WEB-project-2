@@ -244,13 +244,11 @@ def friend_requests():
     friend_requests = db_sess.query(Friends).filter(Friends.first_id == current_user.id, Friends.mans_attitude == 'received').all()
     if not current_user:
         return redirect('/')
-    print(friend_requests)
-    if len(friend_requests) == 0:
-        users = []
-    else:
-        for user in friend_requests:
-            print(user)
-            users = db_sess.query(User).filter(User.id == user.second_id).all()
+
+    users = []
+    for user in friend_requests:
+        user = db_sess.query(User).filter(User.id == user.second_id).first()
+        users.append(user)
     info = {
         'users': users,
         'title': 'Заявки в друзья'
