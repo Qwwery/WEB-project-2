@@ -226,7 +226,7 @@ def user(id):
 
     check_friend = db_sess.query(Friends).filter(Friends.first_id == current_user.id, Friends.second_id == id).first()
     if check_friend.mans_attitude == 'friends':
-        return render_template('user_id.html', **info, title=user.name, text='', button_info='sms')
+        return render_template('user_id.html', **info, title=user.name, text='', button_info='other')
     return render_template('user_id.html', **info, title=user.name, text='', button_info='add')
 
 @app.route('/friends')
