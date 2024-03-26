@@ -4,7 +4,11 @@
 <form action="" class="login_form" method="post">
     <h1>Пользователь {{ user.name }}</h1>
     <div>
-       <button name="add_friend" type="submit" class="btn btn-primary btn_sms">Добавить в друзья</button><br>
+        {% if button_info == 'sumbit' %}
+            <button name="sumbit" type="submit" class="btn btn-primary btn_sms">Принять</button><br>
+        {% else %}
+           <button name="add_friend" type="submit" class="btn btn-primary btn_sms">Добавить в друзья</button><br>
+        {% endif %}
     </div>
 
     {{ text }}
