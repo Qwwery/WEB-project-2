@@ -9,11 +9,25 @@ from forms.news_form import NewsForm
 from forms.sms_form import SmsForm
 from translate import eng_to_rus, rus_to_eng, make_translate
 
+import git
+import logging
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'sdasdgaWFEKjwEKHFNLk;jnFKLJNpj`1`p142QEW:jqwegpoqjergplqwejg;lqeb'
 
 login_manager = LoginManager()
 login_manager.init_app(app)
+
+
+@app.route('/secret_update', methods=["POST"])
+def webhook():
+    if request.method == 'POST':
+        repo = git.Repo('')
+        origin = repo.remotes.origin
+        origin.pull()
+        return 'Ok', 200
+    else:
+        return 'No', 400
 
 
 @login_manager.user_loader
