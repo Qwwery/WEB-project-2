@@ -1,7 +1,18 @@
 {% extends "base.html" %}
 
 {% block content %}
-<form action="" class="login_form">
+<form action="" class="login_form" method="post">
     <h1>Пользователь {{ user.name }}</h1>
+    <div>
+        {% if button_info == 'sumbit' %}
+            <button name="sumbit" type="submit" class="btn btn-primary btn_sms">Принять</button><br>
+        {% elif button_info == 'add' %}
+           <button name="add_friend" type="submit" class="btn btn-primary btn_sms">Добавить в друзья</button><br>
+        {% elif button_info == 'other' %}
+            <button name="add_friend" type="submit" class="btn btn-primary btn_sms">Написать сообщение</button><br>
+        {% endif %}
+    </div>
+
+    {{ text }}
 </form>
 {% endblock %}

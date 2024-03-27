@@ -26,7 +26,10 @@
             <a href="/" style="word-break: break-all; color: #000000"><li><i class="bi bi-person-add"></i> Главная</li></a>
             {% if current_user.is_authenticated %}
                 <a href="/home/{{ current_user.name }}" style="word-break: break-all; color: #000000"><li><i class="bi bi-person-add"></i> {{ current_user.name }}</li></a>
+                <a href="/friends" style="word-break: break-all; color: #000000"><li><i class="bi bi-person-add"></i>Ваши Друзья</li></a>
                 <a href="/search_user" style="word-break: break-all; color: #000000"><li><i class="bi bi-person-add"></i> Поиск друзей</li></a>
+                <a href="/friend_requests" style="word-break: break-all; color: #000000"><li><i class="bi bi-person-add"></i> Заявки в друзья</li></a>
+
             {% else %}
                 <a href="/login" style="word-break: break-all; color: #000000"><li><i class="bi bi-person-add"></i> Вход</li></a>
                 <a href="/registration" style="word-break: break-all; color: #000000"><li><i class="bi bi-person-add"></i> Регистрация</li></a>
