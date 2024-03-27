@@ -19,7 +19,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'sdasdgaWFEKjwEKHFNLk;jnFKLJNpj`1`p142QEW:jqwegpoqjergplqwejg;lqeb'
 
 login_manager = LoginManager()
-login_manager.init_app(app)
+login_manager.init_app(app) #test
 
 
 @app.route('/secret_update', methods=["POST"])
