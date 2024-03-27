@@ -3,7 +3,7 @@
 {% block content %}
 <form action="" class="login_form">
     {% for user in friends %}
-        <p align="center"><a href="user/{{ user.id }}">{{ user.name }}</a><br></p>
+        <p><a href="user/{{ user.id }}">{{ user.name }}</a><br></p>
 
     {% endfor %}
 </form>
