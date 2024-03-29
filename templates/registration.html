@@ -60,6 +60,7 @@
         </p>
         <p>{{ form.remember_me() }} {{ form.remember_me.label }}</p>
         <p>{{ form.submit(type="submit",  class="btn btn-primary") }}</p>
+        <a href="/login" class="links"><i class="bi bi-person-add"></i> Уже есть аккаунт?</a>
         <div>{{ message }}</div>
     </form>
 {% endblock %}

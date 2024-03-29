@@ -4,11 +4,11 @@
 <form action="" class="login_form">
     {% if current_user.is_authenticated %}
         {% for user in users %}
-            <a href="user/{{ user.id }}">{{ user.name }}</a><br>
+            <a href="user/{{ user.id }}" class="links">{{ user.name }}</a><br>
             <hr>
         {% endfor %}
     {% else %}
-        <a href="/login" style="color: #000000"><i class="bi bi-person-add"></i> Войдите в аккаунт </a><a></a>
+        <a href="/login" class="links"><i class="bi bi-person-add"></i> Войдите в аккаунт </a><a></a>
     {% endif %}
 </form>
 {% endblock %}

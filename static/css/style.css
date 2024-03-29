@@ -80,3 +80,15 @@ hr {
   color: black;
   background-color: #333;  /* Modern Browsers */
 }
+
+a.links{
+    color: black;
+    text-decoration: underline;
+}
+
+a.links_navigator{
+    color: black;
+    text-decoration: underline;
+    word-break: break-all
+}
+
