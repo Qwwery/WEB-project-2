@@ -7,8 +7,8 @@ from email.mime.multipart import MIMEMultipart
 def send_email():
     # Заполните эти поля вашими данными
     sender_email = "valerysite06@gmail.com"
-    receiver_email = "valerysite06@gmail.com"  # кому
-    password = " "  # наш пароль
+    receiver_email = "manahova@yandexlyceum.ru"  # кому
+    password = "cwat iden voof bxdn"
     subject = "Subject of the email"
     body = "проверка"
 
