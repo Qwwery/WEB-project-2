@@ -1,16 +1,24 @@
 # valerysite06@gmail.com - почта
+from string import ascii_letters, digits
+from random import sample
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 
-def send_email():
+def generage_code():
+    simvols = list(ascii_letters + digits)
+    code = ''.join(sample(simvols, k=15))
+    return code
+
+
+def send_email(code_check):
     # Заполните эти поля вашими данными
     sender_email = "valerysite06@gmail.com"
     receiver_email = "manahova@yandexlyceum.ru"  # кому
     password = "cwat iden voof bxdn"
     subject = "Subject of the email"
-    body = "проверка"
+    body = code_check
 
     # Создание объекта сообщения
     message = MIMEMultipart()
@@ -33,4 +41,4 @@ def send_email():
     print("Email sent successfully.")
 
 
-send_email()
+code = generage_code()
