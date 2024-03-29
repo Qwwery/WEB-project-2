@@ -74,3 +74,9 @@ form.sms_login_form {
     padding-left: 10px;
     padding-top: 3px;
 }
+hr {
+  border: none;
+  height: 1px;
+  color: black;
+  background-color: #333;  /* Modern Browsers */
+}

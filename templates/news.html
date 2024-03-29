@@ -8,7 +8,7 @@
     {% else %}
         <a href="/login" style="color: #000000"><i class="bi bi-person-add"></i> Войдите в аккаунт </a><a>чтобы просматривать скрытые новости!</a>
     {% endif %}
-
+    <hr>
     {% for new in news %}
     <h1 align="center">{{ new.name }}</h1>
     <h4>{{ new.text }}</h4>
