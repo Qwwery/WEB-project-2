@@ -18,9 +18,18 @@ import logging
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'sdasdgaWFEKjwEKHFNLk;jnFKLJNpj`1`p142QEW:jqwegpoqjergplqwejg;lqeb'
 
+
+def main():
+    db_session.global_init("db/db.db")
+    app.run(debug=True)
+
+
+if __name__ == '__main__':
+    main()
+
+
 login_manager = LoginManager()
 login_manager.init_app(app)
-
 
 @app.route('/secret_update', methods=["POST"])
 def webhook():
@@ -38,10 +47,6 @@ def load_user(user_id):
     db_sess = db_session.create_session()
     return db_sess.query(User).get(user_id)
 
-
-def main():
-    db_session.global_init("db/db.db")
-    app.run(debug=True)
 
 
 @app.route('/')
@@ -268,7 +273,3 @@ def friend_requests():
         'title': 'Заявки в друзья'
     }
     return render_template('friend_requests.html', **info)
-
-
-if __name__ == '__main__':
-    main()
