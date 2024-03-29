@@ -56,7 +56,7 @@ def first():
         'news': news,
         'authors': authors
     }
-    return render_template('news.html', **info, title='NS')
+    return render_template('news.html', **info, title='NaSvyazi')
 
 
 @app.route('/registration', methods=['GET', 'POST'])
