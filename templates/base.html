@@ -16,7 +16,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.min.js"
             integrity="sha384-Atwg2Pkwv9vp0ygtn1JAojH0nYbwNJLPhwyoVbhoPwBhjQPR5VtM2+xf0Uwh9KtT"
             crossorigin="anonymous"></script>
-    <link rel="shortcut icon" href="{{url_for('static', filename='img/ico.png')}}" type="image/png">
+    <link rel="shortcut icon" href="{{url_for('static', filename='img/logo.png')}}" type="image/png">
 </head>
 <body>
     <aside style="white-space: normal">
@@ -28,7 +28,7 @@
                 <a href="/home/{{ current_user.name }}" class="links_navigator"><li><i class="bi bi-person-add"></i> {{ current_user.name }}</li></a>
                 <a href="/friends" class="links_navigator"><li><i class="bi bi-person-add"></i>Ваши Друзья</li></a>
                 <a href="/search_user" class="links_navigator"><li><i class="bi bi-person-add"></i> Поиск друзей</li></a>
-                <a href="/friend_requests" class="links_navigator""><li><i class="bi bi-person-add"></i> Заявки в друзья</li></a>
+                <a href="/friend_requests" class="links_navigator"><li><i class="bi bi-person-add"></i> Заявки в друзья</li></a>
 
             {% else %}
                 <a href="/login" class="links_navigator"><li><i class="bi bi-person-add"></i> Вход</li></a>
