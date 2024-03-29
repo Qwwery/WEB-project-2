@@ -122,13 +122,13 @@ def new_news():
         db_sess.add(news)
         db_sess.commit()
         return redirect("/")
-    return render_template('new_news.html', form=form, tite='Новая новость')
+    return render_template('new_news.html', form=form, title='Новая новость')
 
 
 @app.route('/home/<name>', methods=['GET', 'POST'])
 def home(name):
     if current_user.name == name:
-        return render_template('home.html')
+        return render_template('home.html', title=current_user.name)
 
 
 @app.route('/logout')
@@ -249,7 +249,7 @@ def friends():
     friends_info = db_sess.query(Friends).filter(Friends.second_id == current_user.id, Friends.mans_attitude == 'friends').all()
     friends_id = list(map(lambda x: x.first_id, friends_info))
     friends = db_sess.query(User).filter(User.id.in_(friends_id)).all()
-    return render_template('friends.html', friends=friends)
+    return render_template('friends.html', friends=friends, title='Друзья')
 
 
 @app.route('/friend_requests')
