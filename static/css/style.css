@@ -86,9 +86,17 @@ a.links{
     text-decoration: underline;
 }
 
-a.links_navigator{
+aside ul {list-style: none}
+aside ul a {
     color: black;
     text-decoration: underline;
-    word-break: break-all
+    word-break: break-all;
+    display: block;
+    transition: all .6s ease;
 }
 
+aside ul a:hover, aside ul a:hover {
+    color: white;
+    text-decoration: none;
+    transform: scale(1.05);
+}
