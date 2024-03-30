@@ -182,11 +182,8 @@ def user(id):
     info = {
         'user': user
     }
-    print(request.form)
     if request.method == 'POST':
         if 'add_friend' in request.form:
-            data_friend = [current_user.id, id]
-            print(data_friend)
 
             check_blocked = db_sess.query(Friends).filter(Friends.first_id == id, Friends.second_id == current_user.id).first()
             if check_blocked and check_blocked.mans_attitude == 'ban': # перед оправкой дружбы проверяем, не заблокирован ли отправитель
@@ -237,6 +234,13 @@ def user(id):
             db_sess.delete(second)
             db_sess.commit()
             return render_template('user_id.html', **info, title=user.name, text=f'Пользователь {user.name} был удален из ваших друзей', button_info='add')
+        elif 'cancel_friend' in request.form:
+            first = db_sess.query(Friends).filter(Friends.first_id == id, Friends.second_id == current_user.id).first()
+            second = db_sess.query(Friends).filter(Friends.first_id == current_user.id, Friends.second_id == id).first()
+            db_sess.delete(first)
+            db_sess.delete(second)
+            db_sess.commit()
+            return render_template('user_id.html', **info, title=user.name, text='Предложение отклонено', button_info='add')
     try:
         check_friend = db_sess.query(Friends).filter(Friends.first_id == current_user.id, Friends.second_id == id).first()
         if check_friend.mans_attitude == 'received':
