@@ -182,7 +182,7 @@ def user(id):
     info = {
         'user': user
     }
-
+    print(request.form)
     if request.method == 'POST':
         if 'add_friend' in request.form:
             data_friend = [current_user.id, id]
@@ -229,12 +229,14 @@ def user(id):
             db_sess.commit()
             return redirect('/')
         elif 'delete' in request.form:
+            return render_template('user_id.html', **info, title=user.name, button_info='dialog', name=user.name)
+        elif 'yes' in request.form:
             first = db_sess.query(Friends).filter(Friends.first_id == id, Friends.second_id == current_user.id).first()
             second = db_sess.query(Friends).filter(Friends.first_id == current_user.id, Friends.second_id == id).first()
             db_sess.delete(first)
             db_sess.delete(second)
             db_sess.commit()
-            return render_template('user_id.html', **info, title=user.name, text=f'Пользователь {current_user.name} Удален из друзей', button_info='add')
+            return render_template('user_id.html', **info, title=user.name, text=f'Пользователь {user.name} был удален из ваших друзей', button_info='add')
     try:
         check_friend = db_sess.query(Friends).filter(Friends.first_id == current_user.id, Friends.second_id == id).first()
         if check_friend.mans_attitude == 'received':

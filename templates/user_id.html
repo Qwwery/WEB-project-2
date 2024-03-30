@@ -11,8 +11,11 @@
                <button name="add_friend" type="submit" class="btn btn-primary btn_sms">Добавить в друзья</button><br>
             {% elif button_info == 'other' %}
                 <button name="add_friend" type="submit" class="btn btn-primary btn_sms">Написать сообщение</button>
-                <button name="delete" type="submit" class="btn btn-danger">Удалить из друзей</button>
-                <br>
+                <button name="delete" type="submit" class="btn btn-danger">Удалить из друзей</button><br>
+            {% elif button_info == 'dialog' %}
+                <h3>Вы уверены, что хотите удалить из друзей пользователя {{ name }}?</h3>
+                <button name="yes" type="submit" class="btn btn-danger">Удалить</button>
+                <button name="no" type="submit" class="btn btn-primary">Отмена</button><br>
             {% endif %}
         {% endif %}
     </div>
