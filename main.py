@@ -11,6 +11,7 @@ from forms.news_form import NewsForm
 from forms.sms_form import SmsForm
 from translate import eng_to_rus, rus_to_eng, make_translate
 from data.friends import Friends
+from time_news import get_str_time
 
 import git
 import logging
@@ -60,6 +61,8 @@ def first():
     authors = []
     for new in news:
         authors.append(db_sess.query(User).filter(User.id == new.author).first().name)
+        new.data = get_str_time(new.data)
+
     info = {
         'news': news,
         'authors': authors
@@ -130,13 +133,13 @@ def new_news():
         db_sess.add(news)
         db_sess.commit()
         return redirect("/")
-    return render_template('new_news.html', form=form, tite='Новая новость')
+    return render_template('new_news.html', form=form, title='Новая новость')
 
 
 @app.route('/home/<name>', methods=['GET', 'POST'])
 def home(name):
     if current_user.name == name:
-        return render_template('home.html')
+        return render_template('home.html', title=current_user.name)
 
 
 @app.route('/logout')
@@ -171,7 +174,8 @@ def search_user():
 
     not_friends = []
     for elem in all_users:
-        check_users = db_sess.query(Friends).filter(Friends.first_id == current_user.id, Friends.second_id == elem.id).first()
+        check_users = db_sess.query(Friends).filter(Friends.first_id == current_user.id,
+                                                    Friends.second_id == elem.id).first()
         if not check_users or check_users.mans_attitude != 'friends':
             not_friends.append(elem)
 
@@ -190,17 +194,16 @@ def user(id):
     info = {
         'user': user
     }
-
     if request.method == 'POST':
         if 'add_friend' in request.form:
-            data_friend = [current_user.id, id]
-            print(data_friend)
 
-            check_blocked = db_sess.query(Friends).filter(Friends.first_id == id, Friends.second_id == current_user.id).first()
-            if check_blocked and check_blocked.mans_attitude == 'ban': # перед оправкой дружбы проверяем, не заблокирован ли отправитель
+            check_blocked = db_sess.query(Friends).filter(Friends.first_id == id,
+                                                          Friends.second_id == current_user.id).first()
+            if check_blocked and check_blocked.mans_attitude == 'ban':  # перед оправкой дружбы проверяем, не заблокирован ли отправитель
                 return render_template('user_id.html', **info, title=user.name, text='Пользователь вас заблокировал')
 
-            check_friend = db_sess.query(Friends).filter(Friends.first_id == current_user.id, Friends.second_id == id).first()
+            check_friend = db_sess.query(Friends).filter(Friends.first_id == current_user.id,
+                                                         Friends.second_id == id).first()
             if not check_friend:  # если это первый запрос на дружбу и нет блокировок
                 first_zapic = Friends()
                 first_zapic.first_id = current_user.id
@@ -217,53 +220,87 @@ def user(id):
                 db_sess.add(first_zapic)
 
                 db_sess.commit()
-                return render_template('user_id.html', **info, title=user.name, text='Запрос был отправлен', button_info='add')
+                return render_template('user_id.html', **info, title=user.name, text='Запрос был отправлен',
+                                       button_info='sent')
 
             else:
                 if check_friend.mans_attitude == 'ban':  # пользователь заблокирован текущим пользователем, отправить никак
-                    return render_template('user_id.html', **info, title=user.name, text='Вы не можете отправить запрос этому пользователю.', button_info='add')
+                    return render_template('user_id.html', **info, title=user.name,
+                                           text='Вы не можете отправить запрос этому пользователю.', button_info='add')
 
                 elif check_friend.mans_attitude == 'sent':  # запрос на ожидании
-                    return render_template('user_id.html', **info, title=user.name, text='Вы уже отправляли запрос этому пользователю', button_info='add')
+                    return render_template('user_id.html', **info, title=user.name,
+                                           text='Вы уже отправляли запрос этому пользователю', button_info='sent')
                 elif check_friend.mans_attitude == 'received':
-                    return render_template('user_id.html', **info, title=user.name, text='Этот пользователь хочет с вами дружить!', button_info='add')
+                    return render_template('user_id.html', **info, title=user.name,
+                                           text='Этот пользователь хочет с вами дружить!', button_info='add')
         elif 'sumbit' in request.form:
             check_friend = db_sess.query(Friends).filter(Friends.first_id == current_user.id,
                                                          Friends.second_id == id).first()
             check_friend.mans_attitude = 'friends'
-
             check_friend_2 = db_sess.query(Friends).filter(Friends.first_id == id,
-                                                         Friends.second_id == current_user.id).first()
+                                                           Friends.second_id == current_user.id).first()
             check_friend_2.mans_attitude = 'friends'
-
             db_sess.commit()
-
             return redirect('/')
+        elif 'delete' in request.form:
+            return render_template('user_id.html', **info, title=user.name, button_info='dialog', name=user.name)
+        elif 'yes' in request.form:
+            first = db_sess.query(Friends).filter(Friends.first_id == id, Friends.second_id == current_user.id).first()
+            second = db_sess.query(Friends).filter(Friends.first_id == current_user.id, Friends.second_id == id).first()
+            db_sess.delete(first)
+            db_sess.delete(second)
+            db_sess.commit()
+            return render_template('user_id.html', **info, title=user.name,
+                                   text=f'Пользователь {user.name} был удален из ваших друзей', button_info='add')
+        elif 'cancel_friend' in request.form:
+            first = db_sess.query(Friends).filter(Friends.first_id == id, Friends.second_id == current_user.id).first()
+            second = db_sess.query(Friends).filter(Friends.first_id == current_user.id, Friends.second_id == id).first()
+            db_sess.delete(first)
+            db_sess.delete(second)
+            db_sess.commit()
+            return render_template('user_id.html', **info, title=user.name, text='Предложение отклонено',
+                                   button_info='add')
+        elif 'cancel_request' in request.form:
+            first = db_sess.query(Friends).filter(Friends.first_id == id, Friends.second_id == current_user.id).first()
+            second = db_sess.query(Friends).filter(Friends.first_id == current_user.id, Friends.second_id == id).first()
+            db_sess.delete(first)
+            db_sess.delete(second)
+            db_sess.commit()
+            return render_template('user_id.html', **info, title=user.name, text='Запрос отменен',
+                                   button_info='add')
     try:
-        check_friend = db_sess.query(Friends).filter(Friends.first_id == current_user.id, Friends.second_id == id).first()
+        check_friend = db_sess.query(Friends).filter(Friends.first_id == current_user.id,
+                                                     Friends.second_id == id).first()
         if check_friend.mans_attitude == 'received':
-                return render_template('user_id.html', **info, title=user.name, text='Этот пользователь хочет с вами дружить!', button_info='sumbit')
-    except Exception: # записи не нашлось в бд
+            return render_template('user_id.html', **info, title=user.name,
+                                   text='Этот пользователь хочет с вами дружить!', button_info='sumbit')
+    except Exception:  # записи не нашлось в бд
         return render_template('user_id.html', **info, title=user.name, text='', button_info='add')
 
     check_friend = db_sess.query(Friends).filter(Friends.first_id == current_user.id, Friends.second_id == id).first()
     if check_friend.mans_attitude == 'friends':
         return render_template('user_id.html', **info, title=user.name, text='', button_info='other')
+    if check_friend.mans_attitude == 'sent':
+        return render_template('user_id.html', **info, title=user.name, text='', button_info='sent')
     return render_template('user_id.html', **info, title=user.name, text='', button_info='add')
+
 
 @app.route('/friends')
 def friends():
     db_sess = db_session.create_session()
-    friends_info = db_sess.query(Friends).filter(Friends.second_id == current_user.id, Friends.mans_attitude == 'friends').all()
+    friends_info = db_sess.query(Friends).filter(Friends.second_id == current_user.id,
+                                                 Friends.mans_attitude == 'friends').all()
     friends_id = list(map(lambda x: x.first_id, friends_info))
     friends = db_sess.query(User).filter(User.id.in_(friends_id)).all()
-    return render_template('friends.html', friends=friends)
+    return render_template('friends.html', friends=friends, title='Друзья')
 
 
 @app.route('/friend_requests')
 def friend_requests():
     db_sess = db_session.create_session()
-    friend_requests = db_sess.query(Friends).filter(Friends.first_id == current_user.id, Friends.mans_attitude == 'received').all()
+    friend_requests = db_sess.query(Friends).filter(Friends.first_id == current_user.id,
+                                                    Friends.mans_attitude == 'received').all()
     if not current_user:
         return redirect('/')
 
