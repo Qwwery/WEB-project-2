@@ -18,6 +18,8 @@ import logging
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'sdasdgaWFEKjwEKHFNLk;jnFKLJNpj`1`p142QEW:jqwegpoqjergplqwejg;lqeb'
 
+db_session.global_init("db/db.db")
+
 
 def main():
     db_session.global_init("db/db.db")
@@ -25,6 +27,7 @@ def main():
 
 
 if __name__ == '__main__':
+    db_session.global_init("db/db.db")
     main()
 
 
