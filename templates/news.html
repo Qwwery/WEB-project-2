@@ -11,8 +11,8 @@
     <hr>
     {% for new in news %}
     <h1 align="center">{{ new.name }}</h1>
-    <h4>{{ new.text }}</h4>
-    <p>{{ new.data }}</p>
+    <h3>{{ new.text }}</h3>
+    <h5>{{ new.data }}</h5>
     <p align="right">{{ authors[loop.index - 1] }}</p>
     <hr>
     {% endfor %}
