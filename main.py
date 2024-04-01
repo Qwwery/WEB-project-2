@@ -11,7 +11,7 @@ from forms.news_form import NewsForm
 from forms.sms_form import SmsForm
 from translate import eng_to_rus, rus_to_eng, make_translate
 from data.friends import Friends
-# from time_news import get_str_time
+from time_news import get_str_time #deleted
 import datetime
 
 import git
@@ -54,6 +54,7 @@ def main():
 def first():
     db_sess = db_session.create_session()
     news = db_sess.query(News).all()
+    news = news[::-1]
 
     authors = []
     for new in news:
@@ -118,7 +119,6 @@ def login():
 @app.route('/new_news', methods=['GET', 'POST'])
 def new_news():
     form = NewsForm()
-    print(form.data)
     if form.validate_on_submit():
         db_sess = db_session.create_session()
         user_id = db_sess.query(User).filter(User.email == current_user.email).first().id
