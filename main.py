@@ -159,7 +159,7 @@ def sms():
             print('btn_translate_russ was pressed')
         return render_template(template_name_or_list='sms.html', form=form, title='sms')
 
-
+#
 @app.route('/search_user')
 def search_user():
     db_sess = db_session.create_session()
