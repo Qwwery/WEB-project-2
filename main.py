@@ -164,6 +164,7 @@ def sms():
             print('btn_translate_russ was pressed')
         return render_template(template_name_or_list='sms.html', form=form, title='sms')
 
+
 @app.route('/im', methods=['GET', 'POST'])
 def im():
     if not current_user.is_authenticated:
@@ -182,8 +183,7 @@ def im():
     if user:
         return render_template(template_name_or_list='im.html', form=form, title=user.name)
 
-
-
+      
 @app.route('/search_user')
 def search_user():
     db_sess = db_session.create_session()
