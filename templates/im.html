@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1 align="center"> Чат {{name_chat}}</h1>
+
+<div class="scrole_sms frame_sms">
+    <p>text</p>
+</div>
+
+<form class="sms_login_form center_label" method="post">
+    {{ form.hidden_tag() }}
+    <div>
+        <p>
+        {{ form.text.label }}<br>
+        {{ form.text(class="form-control") }}
+        {% for error in form.text.errors %}
+            <p class="alert alert-danger" role="alert">
+                {{ error }}
+            </p>
+        {% endfor %}
+    </p>
+    </div>
+    <button name="btn_translate_eng" type="submit" class="btn btn-success btn_sms">Я дебил, язык попутал (на англ)
+    </button>
+    <button name="btn_submit" type="submit" class="btn btn-primary btn_sms">Отправить</button>
+    <button name="btn_translate_russ" type="submit" class="btn btn-danger btn_sms">Я дебил, язык попутал (на русс яз)
+    </button>
+    <br>
+</form>
+
+{% endblock %}
