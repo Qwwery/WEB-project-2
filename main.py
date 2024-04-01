@@ -14,7 +14,7 @@ from data.friends import Friends
 from time_news import get_str_time
 
 import git
-import logging #test webhooks
+import logging
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'sdasdgaWFEKjwEKHFNLk;jnFKLJNpj`1`p142QEW:jqwegpoqjergplqwejg;lqeb'
