@@ -49,11 +49,11 @@ def main():
 def first():
     db_sess = db_session.create_session()
     news = db_sess.query(News).all()
+    news = news[::-1]
 
     authors = []
     for new in news:
         authors.append(db_sess.query(User).filter(User.id == new.author).first().name)
-        new.data = get_str_time(new.data)
 
     info = {
         'news': news,
@@ -112,7 +112,6 @@ def login():
 @app.route('/new_news', methods=['GET', 'POST'])
 def new_news():
     form = NewsForm()
-    print(form.data)
     if form.validate_on_submit():
         db_sess = db_session.create_session()
         user_id = db_sess.query(User).filter(User.email == current_user.email).first().id
@@ -120,9 +119,11 @@ def new_news():
             author=user_id,
             name=form.name.data,
             text=form.text.data,
-            private=form.private.data
+            private=form.private.data,
         )
         db_sess.add(news)
+        db_sess.commit()
+        news.data_str = get_str_time(news.data)
         db_sess.commit()
         return redirect("/")
     return render_template('new_news.html', form=form, title='Новая новость')

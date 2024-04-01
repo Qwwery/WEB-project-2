@@ -12,7 +12,7 @@
     {% for new in news %}
     <h1 align="center">{{ new.name }}</h1>
     <h3>{{ new.text }}</h3>
-    <h5>{{ new.data }}</h5>
+    <h5>{{ new.data_str }}</h5>
     <p align="right">{{ authors[loop.index - 1] }}</p>
     <hr>
     {% endfor %}
