@@ -11,7 +11,7 @@ from forms.news_form import NewsForm
 from forms.sms_form import SmsForm
 from translate import eng_to_rus, rus_to_eng, make_translate
 from data.friends import Friends
-from time_news import get_str_time
+from time_news import get_str_time #deleted
 
 import git
 import logging
