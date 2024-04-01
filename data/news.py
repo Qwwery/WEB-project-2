@@ -15,7 +15,6 @@ class News(SqlAlchemyBase, UserMixin):
     name = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     text = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     data = sqlalchemy.Column(sqlalchemy.DateTime, default=datetime.datetime.now())
+    data_str = sqlalchemy.Column(sqlalchemy.String, default='')
 
     private = sqlalchemy.Column(sqlalchemy.Boolean, default=False)
-
-

@@ -11,10 +11,10 @@ from forms.news_form import NewsForm
 from forms.sms_form import SmsForm
 from translate import eng_to_rus, rus_to_eng, make_translate
 from data.friends import Friends
-from time_news import get_str_time #deleted
+from time_news import get_str_time  # deleted
 import datetime
-
 import git
+import pytz
 import logging
 
 app = Flask(__name__)
@@ -27,6 +27,7 @@ login_manager.init_app(app)
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html')
+
 
 @app.route('/secret_update', methods=["POST"])
 def webhook():
@@ -122,13 +123,20 @@ def new_news():
     if form.validate_on_submit():
         db_sess = db_session.create_session()
         user_id = db_sess.query(User).filter(User.email == current_user.email).first().id
+
         news = News(
             author=user_id,
             name=form.name.data,
             text=form.text.data,
-            private=form.private.data
+            private=form.private.data,
         )
+
         db_sess.add(news)
+        db_sess.commit()
+        tz_kiev = pytz.timezone('Europe/Kiev')
+        time_kiev = datetime.datetime.now(tz_kiev)
+        news.data = time_kiev
+        news.data_str = get_str_time(news.data)
         db_sess.commit()
         return redirect("/")
     return render_template('new_news.html', form=form, title='Новая новость')
@@ -164,6 +172,7 @@ def sms():
             print('btn_translate_russ was pressed')
         return render_template(template_name_or_list='sms.html', form=form, title='sms')
 
+
 @app.route('/im', methods=['GET', 'POST'])
 def im():
     if not current_user.is_authenticated:
@@ -181,7 +190,6 @@ def im():
 
     if user:
         return render_template(template_name_or_list='im.html', form=form, title=user.name)
-
 
 
 @app.route('/search_user')
