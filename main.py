@@ -11,7 +11,7 @@ from forms.news_form import NewsForm
 from forms.sms_form import SmsForm
 from translate import eng_to_rus, rus_to_eng, make_translate
 from data.friends import Friends
-from time_news import get_str_time
+from time_news import get_str_time #deleted
 
 import git
 import logging
@@ -122,8 +122,6 @@ def new_news():
             private=form.private.data,
         )
         db_sess.add(news)
-        db_sess.commit()
-        news.data_str = get_str_time(news.data)
         db_sess.commit()
         return redirect("/")
     return render_template('new_news.html', form=form, title='Новая новость')
