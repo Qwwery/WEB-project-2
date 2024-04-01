@@ -14,7 +14,7 @@ from data.friends import Friends
 from time_news import get_str_time
 
 import git
-import logging
+import logging #test webhooks
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'sdasdgaWFEKjwEKHFNLk;jnFKLJNpj`1`p142QEW:jqwegpoqjergplqwejg;lqeb'
@@ -57,11 +57,11 @@ def load_user(user_id):
 def first():
     db_sess = db_session.create_session()
     news = db_sess.query(News).all()
+    news = news[::-1]
 
     authors = []
     for new in news:
         authors.append(db_sess.query(User).filter(User.id == new.author).first().name)
-        new.data = get_str_time(new.data)
 
     info = {
         'news': news,
@@ -120,7 +120,6 @@ def login():
 @app.route('/new_news', methods=['GET', 'POST'])
 def new_news():
     form = NewsForm()
-    print(form.data)
     if form.validate_on_submit():
         db_sess = db_session.create_session()
         user_id = db_sess.query(User).filter(User.email == current_user.email).first().id
@@ -128,7 +127,7 @@ def new_news():
             author=user_id,
             name=form.name.data,
             text=form.text.data,
-            private=form.private.data
+            private=form.private.data,
         )
         db_sess.add(news)
         db_sess.commit()
