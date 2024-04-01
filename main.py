@@ -11,7 +11,8 @@ from forms.news_form import NewsForm
 from forms.sms_form import SmsForm
 from translate import eng_to_rus, rus_to_eng, make_translate
 from data.friends import Friends
-from time_news import get_str_time
+# from time_news import get_str_time
+import datetime
 
 import git
 import logging
@@ -22,6 +23,10 @@ app.config['SECRET_KEY'] = 'sdasdgaWFEKjwEKHFNLk;jnFKLJNpj`1`p142QEW:jqwegpoqjer
 login_manager = LoginManager()
 login_manager.init_app(app)
 
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html')
 
 @app.route('/secret_update', methods=["POST"])
 def webhook():
@@ -53,7 +58,8 @@ def first():
     authors = []
     for new in news:
         authors.append(db_sess.query(User).filter(User.id == new.author).first().name)
-        new.data = get_str_time(new.data)
+        # new.data = get_str_time(new.data)
+        new.date = datetime.datetime.now()
 
     info = {
         'news': news,
@@ -157,6 +163,25 @@ def sms():
             form.text.data = make_translate(form.text.data, eng_to_rus)
             print('btn_translate_russ was pressed')
         return render_template(template_name_or_list='sms.html', form=form, title='sms')
+
+@app.route('/im', methods=['GET', 'POST'])
+def im():
+    if not current_user.is_authenticated:
+        return '<h1 align="center">Войди в аккаунт, и не балуйся с ссылками ;)</h1>'
+    form = SmsForm()
+    id_user = request.args.get('sel')
+    id_chat = request.args.get('ch')
+
+    db_sess = db_session.create_session()
+    is_friends = db_sess.query(Friends).filter(Friends.first_id == current_user.id, Friends.second_id == id_user).all()
+    if is_friends:
+        user = db_sess.query(User).filter(User.id == id_user).first()
+    else:
+        return redirect('404')
+
+    if user:
+        return render_template(template_name_or_list='im.html', form=form, title=user.name)
+
 
 
 @app.route('/search_user')
