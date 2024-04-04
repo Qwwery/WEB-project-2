@@ -16,6 +16,7 @@ class UnconfirmedUser(SqlAlchemyBase, UserMixin):
     email = sqlalchemy.Column(sqlalchemy.String, unique=True)
     hashed_password = sqlalchemy.Column(sqlalchemy.String)
     modified_date = sqlalchemy.Column(sqlalchemy.DateTime, default=datetime.datetime.now())
+    remember_me = sqlalchemy.Column(sqlalchemy.Boolean, default=False)
 
     def set_password(self, password):
         self.hashed_password = generate_password_hash(password)

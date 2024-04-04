@@ -87,7 +87,8 @@ def registration():
             name=form.name.data,
             surname=form.surname.data,
             email=form.email.data,
-            age=form.age.data
+            age=form.age.data,
+            remember_me=form.remember_me.data
         )
         unconfirmed_user.set_password(form.password.data)
         email = unconfirmed_user.email
@@ -123,7 +124,7 @@ def registration():
 def confirm(confirmation_code):
     db_sess = db_session.create_session()
     try:
-        unconfirmed_user_id = serializer.loads(confirmation_code, salt='confirm-salt', max_age=1)
+        unconfirmed_user_id = serializer.loads(confirmation_code, salt='confirm-salt', max_age=180)
         print(unconfirmed_user_id)
         unconfirmed_user = db_sess.query(UnconfirmedUser).filter(UnconfirmedUser.id == unconfirmed_user_id).first()
 
@@ -134,10 +135,13 @@ def confirm(confirmation_code):
                 email=unconfirmed_user.email,
                 age=unconfirmed_user.age,
                 hashed_password=unconfirmed_user.hashed_password,
-                modified_date=unconfirmed_user.modified_date
+                modified_date=unconfirmed_user.modified_date,
+                remember_me=unconfirmed_user.remember_me
             )
             db_sess.add(user)
             db_sess.commit()
+            login_user(user, remember=user.remember_me)
+
             return 'Account confirmed! Please login.'
         else:
             return 'Ебаный None'
@@ -161,6 +165,7 @@ def login():
             return render_template('login.html',
                                    message="Неправильный пароль",
                                    form=form, title='Вход')
+        login_user(user, remember=user.remember_me)
         return redirect("/")
 
     return render_template('login.html', title='Авторизация', form=form)
