@@ -165,7 +165,7 @@ def login():
             return render_template('login.html',
                                    message="Неправильный пароль",
                                    form=form, title='Вход')
-        login_user(user, remember=user.remember_me)
+        login_user(user, remember=form.remember_me.data)
         return redirect("/")
 
     return render_template('login.html', title='Авторизация', form=form)
