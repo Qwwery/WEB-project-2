@@ -10,12 +10,12 @@
     {% endif %}
     <hr>
     {% for new in news %}
-    <h1 align="center">{{ new.name }}</h1>
-    <h3>{{ new.text }}</h3>
-    <h5>{{ new.data_str }}</h5>
+    <h3 align="center">{{ new.name }}</h3>
+    <a>{{ new.text }}</a> <br> <br>
+    <a>{{ new.data_str }}</a>
     <p align="right">{{ authors[loop.index - 1] }}</p>
     <hr>
     {% endfor %}
-    <h1 align="center">Вы дошли до конца!</h1>
+    <h3 align="center">Вы дошли до конца!</h3>
 </form>
 {% endblock %}
