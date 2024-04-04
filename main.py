@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request, redirect
+import itsdangerous
+from flask import Flask, render_template, request, redirect, jsonify
 from sqlalchemy.orm import Session
 
 from data.users import User
@@ -11,15 +12,17 @@ from forms.news_form import NewsForm
 from forms.sms_form import SmsForm
 from translate import eng_to_rus, rus_to_eng, make_translate
 from data.friends import Friends
-from time_news import get_str_time #deleted
+from time_news import get_str_time  # deleted
 import datetime
-
+import smtplib
+from email.mime.text import MIMEText
+from itsdangerous import URLSafeTimedSerializer
 import git
 import logging
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'sdasdgaWFEKjwEKHFNLk;jnFKLJNpj`1`p142QEW:jqwegpoqjergplqwejg;lqeb'
-
+serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 login_manager = LoginManager()
 login_manager.init_app(app)
 
@@ -27,6 +30,7 @@ login_manager.init_app(app)
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html')
+
 
 @app.route('/secret_update', methods=["POST"])
 def webhook():
@@ -86,13 +90,46 @@ def registration():
             age=form.age.data
         )
         user.set_password(form.password.data)
+        email = user.email
+
         db_sess.add(user)
         db_sess.commit()
+        user_info = db_sess.query(User).filter(User.email == form.email.data).first()
+        confirmation_code = serializer.dumps(user_info.id, salt='confirm-salt')
+        confirm_url = f'{request.host}/confirm/{confirmation_code}'
+
+        msg = MIMEText(f'''Please confirm your account by clicking the link below: {confirm_url}''', 'html')
+        msg['Subject'] = 'Account Confirmation Required'
+        msg['From'] = 'valerylarionov06@gmail.com'
+        msg['To'] = email
+
+        with smtplib.SMTP('smtp.gmail.com', 587) as server:
+            server.starttls()
+            server.login('valerylarionov06@gmail.com', 'hafg vjqg nywe khnu')
+            server.sendmail('valerylarionov06@gmail.com', [email], msg.as_string())
 
         user_info = db_sess.query(User).filter(User.email == form.email.data).first()
         login_user(user_info, remember=form.remember_me.data)
-        return redirect('/')
+        return jsonify({'message': 'Check your email to confirm registration.'})
     return render_template('registration.html', form=form, title='Регистрация')
+
+
+@app.route('/confirm/<confirmation_code>')
+def confirm(confirmation_code):
+    db_sess = db_session.create_session()
+    user_id = serializer.loads(confirmation_code, salt='confirm-salt', max_age=2)
+    print(user_id)
+    user = db_sess.query(User).filter(User.id == user_id).first()
+    try:
+        if user is not None:
+            user.confirmed = True
+            db_sess.commit()
+            return 'Account confirmed! Please login.'
+        else:
+            return 'Ебаный None'
+    except Exception as text:
+        print(text)
+        return 'Ошибка, возможно, превышено время'
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -164,6 +201,7 @@ def sms():
             print('btn_translate_russ was pressed')
         return render_template(template_name_or_list='sms.html', form=form, title='sms')
 
+
 @app.route('/im', methods=['GET', 'POST'])
 def im():
     if not current_user.is_authenticated:
@@ -181,7 +219,6 @@ def im():
 
     if user:
         return render_template(template_name_or_list='im.html', form=form, title=user.name)
-
 
 
 @app.route('/search_user')
