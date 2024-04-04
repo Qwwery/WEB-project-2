@@ -1,7 +1,7 @@
 import itsdangerous
 from flask import Flask, render_template, request, redirect, jsonify
 from sqlalchemy.orm import Session
-
+from data.unconfirmed_user import UnconfirmedUser
 from data.users import User
 from data.news import News
 from data import db_session
@@ -83,19 +83,23 @@ def registration():
             return render_template('registration.html', message="Пользователь с такой почтой уже существует", form=form,
                                    title='Регистрация')
 
-        user = User(
+        unconfirmed_user = UnconfirmedUser(
             name=form.name.data,
             surname=form.surname.data,
             email=form.email.data,
             age=form.age.data
         )
-        user.set_password(form.password.data)
-        email = user.email
+        unconfirmed_user.set_password(form.password.data)
+        email = unconfirmed_user.email
+        check_unconfirmed_user = db_sess.query(UnconfirmedUser).filter(UnconfirmedUser.email == email).first()
+        if check_unconfirmed_user:
+            db_sess.delete(check_unconfirmed_user)
+            db_sess.commit()
 
-        db_sess.add(user)
+        db_sess.add(unconfirmed_user)
         db_sess.commit()
-        user_info = db_sess.query(User).filter(User.email == form.email.data).first()
-        confirmation_code = serializer.dumps(user_info.id, salt='confirm-salt')
+        unconfirmed = db_sess.query(UnconfirmedUser).filter(UnconfirmedUser.email == form.email.data).first()
+        confirmation_code = serializer.dumps(unconfirmed.id, salt='confirm-salt')
         confirm_url = f'{request.host}/confirm/{confirmation_code}'
 
         msg = MIMEText(f'''Please confirm your account by clicking the link below: {confirm_url}''', 'html')
@@ -108,8 +112,9 @@ def registration():
             server.login('valerylarionov06@gmail.com', 'hafg vjqg nywe khnu')
             server.sendmail('valerylarionov06@gmail.com', [email], msg.as_string())
 
-        user_info = db_sess.query(User).filter(User.email == form.email.data).first()
-        login_user(user_info, remember=form.remember_me.data)
+        unconfirmed = db_sess.query(UnconfirmedUser).filter(UnconfirmedUser.email == form.email.data).first()
+        print(unconfirmed)
+        login_user(unconfirmed, remember=form.remember_me.data)
         return jsonify({'message': 'Check your email to confirm registration.'})
     return render_template('registration.html', form=form, title='Регистрация')
 
@@ -117,12 +122,21 @@ def registration():
 @app.route('/confirm/<confirmation_code>')
 def confirm(confirmation_code):
     db_sess = db_session.create_session()
-    user_id = serializer.loads(confirmation_code, salt='confirm-salt', max_age=2)
-    print(user_id)
-    user = db_sess.query(User).filter(User.id == user_id).first()
     try:
-        if user is not None:
-            user.confirmed = True
+        unconfirmed_user_id = serializer.loads(confirmation_code, salt='confirm-salt', max_age=1)
+        print(unconfirmed_user_id)
+        unconfirmed_user = db_sess.query(UnconfirmedUser).filter(UnconfirmedUser.id == unconfirmed_user_id).first()
+
+        if unconfirmed_user is not None:
+            user = User(
+                name=unconfirmed_user.name,
+                surname=unconfirmed_user.surname,
+                email=unconfirmed_user.email,
+                age=unconfirmed_user.age,
+                hashed_password=unconfirmed_user.hashed_password,
+                modified_date=unconfirmed_user.modified_date
+            )
+            db_sess.add(user)
             db_sess.commit()
             return 'Account confirmed! Please login.'
         else:
@@ -147,7 +161,6 @@ def login():
             return render_template('login.html',
                                    message="Неправильный пароль",
                                    form=form, title='Вход')
-        login_user(user, remember=form.remember_me.data)
         return redirect("/")
 
     return render_template('login.html', title='Авторизация', form=form)
