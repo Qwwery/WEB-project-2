@@ -2,9 +2,15 @@
 
 {% block content %}
 
-<form action="" class="login_form">
+<form action="" class="login_form" method="post">
     {% if current_user.is_authenticated %}
+        {% if current_user.confirmed == False %}
+            <a href="/new_news" class="btn btn-warning">Добавить новость</a>
+            <button name="confirm" type="submit" class="btn btn-danger btn_sms">Подтвердить учетную запись</button><br>
+            {{text}}<br>
+        {% else %}
         <a href="/new_news" class="btn btn-warning">Добавить новость</a>
+        {% endif %}
     {% else %}
         <a href="/login" class="links"><i class="bi bi-person-add"></i> Войдите в аккаунт</a><a> чтобы просматривать скрытые новости!</a>
     {% endif %}
