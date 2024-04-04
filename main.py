@@ -115,8 +115,7 @@ def registration():
 
         unconfirmed = db_sess.query(UnconfirmedUser).filter(UnconfirmedUser.email == form.email.data).first()
         print(unconfirmed)
-        login_user(unconfirmed, remember=form.remember_me.data)
-        return jsonify({'message': 'Check your email to confirm registration.'})
+        return render_template('info_registration.html', title='Регистрация', text='check your email to confirm registration.')
     return render_template('registration.html', form=form, title='Регистрация')
 
 
@@ -142,13 +141,13 @@ def confirm(confirmation_code):
             db_sess.commit()
             login_user(user, remember=user.remember_me)
 
-            return 'Account confirmed! Please login.'
+            return render_template('info_registration.html', title='Регистрация', text='Account confirmed!')
         else:
-            return 'Ебаный None'
+            return render_template('info_registration.html', title='Регистрация', text='Ошибка с поиском пользователя')
+
     except Exception as text:
         print(text)
-        return 'Ошибка, возможно, превышено время'
-
+        return render_template('info_registration.html', title='Регистрация', text='Ошибка, возможно, превышено время')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
