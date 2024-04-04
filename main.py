@@ -70,7 +70,7 @@ def first():
         'news': news,
         'authors': authors
     }
-    return render_template('news.html', **info, title='NaSvyazi')
+    return render_template('news.html', **info, title='NaSvyazi', action='nothing')
 
 
 @app.route('/registration', methods=['GET', 'POST'])
@@ -115,7 +115,7 @@ def registration():
 
         unconfirmed = db_sess.query(UnconfirmedUser).filter(UnconfirmedUser.email == form.email.data).first()
         print(unconfirmed)
-        return render_template('info_registration.html', title='Регистрация', text='check your email to confirm registration.')
+        return render_template('news.html', title='Регистрация', text='check your email to confirm registration.', action='registration')
     return render_template('registration.html', form=form, title='Регистрация')
 
 
@@ -123,7 +123,7 @@ def registration():
 def confirm(confirmation_code):
     db_sess = db_session.create_session()
     try:
-        unconfirmed_user_id = serializer.loads(confirmation_code, salt='confirm-salt', max_age=180)
+        unconfirmed_user_id = serializer.loads(confirmation_code, salt='confirm-salt', max_age=100)
         print(unconfirmed_user_id)
         unconfirmed_user = db_sess.query(UnconfirmedUser).filter(UnconfirmedUser.id == unconfirmed_user_id).first()
 
@@ -141,13 +141,13 @@ def confirm(confirmation_code):
             db_sess.commit()
             login_user(user, remember=user.remember_me)
 
-            return render_template('info_registration.html', title='Регистрация', text='Account confirmed!')
+            return redirect(f'/home/{user.name}')
         else:
-            return render_template('info_registration.html', title='Регистрация', text='Ошибка с поиском пользователя')
+            return render_template('news.html', title='Регистрация', text='Ошибка с поиском пользователя', action='registration')
 
     except Exception as text:
         print(text)
-        return render_template('info_registration.html', title='Регистрация', text='Ошибка, возможно, превышено время')
+        return render_template('news.html', title='Регистрация', text='Ошибка, возможно, превышено время. Введите данные для регистрации еще раз', action='registration')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -185,7 +185,7 @@ def new_news():
         db_sess.add(news)
         db_sess.commit()
         return redirect("/")
-    return render_template('new_news.html', form=form, title='Новая новость')
+    return render_template('new_news.html', form=form, title='Новая новость', action='nothing')
 
 
 @app.route('/home/<name>', methods=['GET', 'POST'])
