@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<form action="" class="login_form">
+<form action="" class="login_form" method="post">
     {% if current_user.is_authenticated %}
         <a href="/new_news" class="btn btn-warning">Добавить новость</a>
     {% else %}
@@ -13,6 +13,13 @@
     <h1 align="center">{{ new.name }}</h1>
     <h3>{{ new.text }}</h3>
     <h5>{{ new.data_str }}</h5>
+    {% if current_user.is_authenticated and current_user == new.user_relationship %}
+        <div>
+            <a href="/edit_news/{{ new.id }}" class="btn btn-primary btn_sms">
+                Настройки новости
+            </a>
+        </div>
+        {% endif %}
     <p align="right">{{ authors[loop.index - 1] }}</p>
     <hr>
     {% endfor %}
