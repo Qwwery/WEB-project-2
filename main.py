@@ -273,7 +273,8 @@ def search_user():
 def user(id):
     db_sess = db_session.create_session()
     user = db_sess.query(User).filter(User.id == id).first()
-
+    if not user:
+        return abort(404)
     info = {
         'user': user
     }
