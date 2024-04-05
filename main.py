@@ -208,7 +208,7 @@ def search_user():
         'users': not_friends
     }
 
-    if request.method == 'POST':
+    if request.method == 'POST' and 'search' in request.form and len(request.form['search'].strip()) > 0:
         name_search = request.form['search']
         if len(name_search.strip()) > 0:
             user_with_search = []
@@ -218,8 +218,10 @@ def search_user():
             info = {
                 'users': user_with_search
             }
-
-    return render_template('search_user.html', **info, title='Поиск друзей')
+        return render_template('search_user.html', **info, title='Поиск друзей', action='btn')
+    elif request.method == 'POST' and 'all' in request.form:
+        return render_template('search_user.html', **info, title='Поиск друзей', action='')
+    return render_template('search_user.html', **info, title='Поиск друзей', action='')
 
 
 @app.route('/user/<int:id>', methods=['GET', 'POST'])
@@ -322,14 +324,20 @@ def user(id):
     return render_template('user_id.html', **info, title=user.name, text='', button_info='add')
 
 
-@app.route('/friends')
+@app.route('/friends', methods=['GET', 'POST'])
 def friends():
     db_sess = db_session.create_session()
     friends_info = db_sess.query(Friends).filter(Friends.second_id == current_user.id,
                                                  Friends.mans_attitude == 'friends').all()
     friends_id = list(map(lambda x: x.first_id, friends_info))
     friends = db_sess.query(User).filter(User.id.in_(friends_id)).all()
-    return render_template('friends.html', friends=friends, title='Друзья')
+
+    if request.method == 'POST' and 'search' in request.form and len(request.form['search'].strip()) > 0:
+        friends = list(filter(lambda x: request.form['search'].lower() in x.name.lower(), friends))
+        return render_template('friends.html', friends=friends, title='Друзья', action='btn')
+    elif request.method == 'POST' and 'all' in request.form:
+        return render_template('friends.html', friends=friends, title='Друзья', action='')
+    return render_template('friends.html', friends=friends, title='Друзья', action='')
 
 
 @app.route('/friend_requests')
