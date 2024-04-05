@@ -250,7 +250,7 @@ def im():
         return render_template(template_name_or_list='im.html', form=form, title=user.name)
 
 
-@app.route('/search_user')
+@app.route('/search_user', methods=['GET', 'POST'])
 def search_user():
     db_sess = db_session.create_session()
     all_users = db_sess.query(User).filter(User.id != current_user.id).all()
@@ -265,6 +265,17 @@ def search_user():
     info = {
         'users': not_friends
     }
+
+    if request.method == 'POST':
+        name_search = request.form['search']
+        if len(name_search.strip()) > 0:
+            user_with_search = []
+            for elem in not_friends:
+                if name_search.lower() in elem.name.lower():
+                    user_with_search.append(elem)
+            info = {
+                'users': user_with_search
+            }
 
     return render_template('search_user.html', **info, title='Поиск друзей')
 
