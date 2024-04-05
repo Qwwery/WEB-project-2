@@ -22,7 +22,7 @@ from email.mime.text import MIMEText
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'sdasdgaWFEKjwEKHFNLk;jnFKLJNpj`1`p142QEW:jqwegpoqjergplqwejg;lqeb'
-<<<<<<< HEAD
+
 
 db_session.global_init("db/db.db")
 
@@ -37,9 +37,8 @@ if __name__ == '__main__':
     main()
 
 
-=======
+
 serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
->>>>>>> 00ce15eb60a754026aa3739cd3ed3b9443371c01
 login_manager = LoginManager()
 login_manager.init_app(app)
 
@@ -76,7 +75,7 @@ def first():
             user = db_sess.query(User).filter(User.email == current_user.email).first()
             confirmation_code = serializer.dumps(user.id, salt='confirm-salt')
             confirm_url = f'{request.host}/confirm/{confirmation_code}'
-            msg = MIMEText(f'''Подтвердите учетную запись от NaSvyazi, перейдя по ссылке: {confirm_url}.\n 
+            msg = MIMEText(f'''Подтвердите учетную запись от NaSvyazi, перейдя по ссылке: {confirm_url}.\n
             Если вы не отправляли запрос, игнорируйте это сообщение''', 'html')
             msg['Subject'] = 'Account Confirmation Required'
             msg['From'] = 'valerylarionov06@gmail.com'
