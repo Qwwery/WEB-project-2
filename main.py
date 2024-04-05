@@ -377,14 +377,14 @@ def news_edit(id):
     if form.validate_on_submit():
         db_sess = db_session.create_session()
         new_obj = db_sess.query(News).filter(News.id == id).filter(News.author == current_user.id).first()
-
-        if new_obj:
-            new_obj.name = form.name.data
-            new_obj.text = form.text.data
-            new_obj.private = form.private.data
-            db_sess.merge(new_obj)
-            db_sess.commit()
-            return redirect('/')
+        if 'edit' in request.form:
+            if new_obj:
+                new_obj.name = form.name.data
+                new_obj.text = form.text.data
+                new_obj.private = form.private.data
+                db_sess.merge(new_obj)
+                db_sess.commit()
+                return redirect('/')
     return render_template('edit_news.html', title='Редактирование работы', form=form)
 
 
