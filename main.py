@@ -385,7 +385,17 @@ def news_edit(id):
                 db_sess.merge(new_obj)
                 db_sess.commit()
                 return redirect('/')
-    return render_template('edit_news.html', title='Редактирование работы', form=form)
+
+        elif 'confirm_del' in request.form:
+            return render_template('edit_news.html', title='Редактирование работы', form=form, action='confirm_del')
+        elif 'yes' in request.form:
+            if new_obj:
+                db_sess.delete(new_obj)
+                db_sess.commit()
+            else:
+                abort(404)
+            return redirect('/')
+    return render_template('edit_news.html', title='Редактирование работы', form=form, action='')
 
 
 if __name__ == '__main__':
