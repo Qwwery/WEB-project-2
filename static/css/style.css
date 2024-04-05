@@ -100,3 +100,7 @@ aside ul a:hover, aside ul a:hover {
     text-decoration: none;
     transform: scale(1.05);
 }
+
+.error_confirmed{
+   margin-left: 35%;
+}

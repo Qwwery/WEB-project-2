@@ -11,14 +11,18 @@ from forms.news_form import NewsForm
 from forms.sms_form import SmsForm
 from translate import eng_to_rus, rus_to_eng, make_translate
 from data.friends import Friends
-from time_news import get_str_time #deleted
+from time_news import get_str_time  # deleted
 import datetime
-
 import git
+import pytz
 import logging
+from itsdangerous import URLSafeTimedSerializer
+import smtplib
+from email.mime.text import MIMEText
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'sdasdgaWFEKjwEKHFNLk;jnFKLJNpj`1`p142QEW:jqwegpoqjergplqwejg;lqeb'
+<<<<<<< HEAD
 
 db_session.global_init("db/db.db")
 
@@ -33,6 +37,9 @@ if __name__ == '__main__':
     main()
 
 
+=======
+serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+>>>>>>> 00ce15eb60a754026aa3739cd3ed3b9443371c01
 login_manager = LoginManager()
 login_manager.init_app(app)
 
@@ -60,9 +67,27 @@ def load_user(user_id):
 
 
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def first():
     db_sess = db_session.create_session()
+    text = ''
+    if request.method == 'POST':
+        if 'confirm' in request.form:
+            user = db_sess.query(User).filter(User.email == current_user.email).first()
+            confirmation_code = serializer.dumps(user.id, salt='confirm-salt')
+            confirm_url = f'{request.host}/confirm/{confirmation_code}'
+            msg = MIMEText(f'''Подтвердите учетную запись от NaSvyazi, перейдя по ссылке: {confirm_url}.\n 
+            Если вы не отправляли запрос, игнорируйте это сообщение''', 'html')
+            msg['Subject'] = 'Account Confirmation Required'
+            msg['From'] = 'valerylarionov06@gmail.com'
+            msg['To'] = user.email
+
+            with smtplib.SMTP('smtp.gmail.com', 587) as server:
+                server.starttls()
+                server.login('valerylarionov06@gmail.com', 'hafg vjqg nywe khnu')
+                server.sendmail('valerylarionov06@gmail.com', [user.email], msg.as_string())
+                text = 'Зайдите на почту и подтвердите свою учетную запись в течение трёх минут'
+
     news = db_sess.query(News).all()
     news = news[::-1]
 
@@ -76,7 +101,28 @@ def first():
         'news': news,
         'authors': authors
     }
-    return render_template('news.html', **info, title='NaSvyazi')
+
+    return render_template('news.html', **info, title='NaSvyazi', text=text)
+
+
+@app.route('/confirm/<confirmation_code>')
+def confirm(confirmation_code):
+    db_sess = db_session.create_session()
+    try:
+        unconfirmed_user_id = serializer.loads(confirmation_code, salt='confirm-salt', max_age=180)
+        user = db_sess.query(User).filter(User.id == unconfirmed_user_id).first()
+
+        if unconfirmed_user_id is not None:
+            user.confirmed = True
+            db_sess.commit()
+
+            return render_template('home.html', text='Вы подтвердили вашу учетную запись')
+        else:
+            return render_template('confirmed_sms.html', title='NaSvyazi', text='Неизвестная ошибка')
+    except Exception as text:
+        print(text)
+        return render_template('confirmed_sms.html', title='NaSvyazi',
+                               text='Ошибка, возможно, превышено время. Попробуйте еще раз')
 
 
 @app.route('/registration', methods=['GET', 'POST'])
@@ -132,13 +178,20 @@ def new_news():
     if form.validate_on_submit():
         db_sess = db_session.create_session()
         user_id = db_sess.query(User).filter(User.email == current_user.email).first().id
+
         news = News(
             author=user_id,
             name=form.name.data,
             text=form.text.data,
-            private=form.private.data
+            private=form.private.data,
         )
+
         db_sess.add(news)
+        db_sess.commit()
+        tz_kiev = pytz.timezone('Europe/Kiev')
+        time_kiev = datetime.datetime.now(tz_kiev)
+        news.data = time_kiev
+        news.data_str = get_str_time(news.data)
         db_sess.commit()
         return redirect("/")
     return render_template('new_news.html', form=form, title='Новая новость')
@@ -147,7 +200,23 @@ def new_news():
 @app.route('/home/<name>', methods=['GET', 'POST'])
 def home(name):
     if current_user.name == name:
-        return render_template('home.html', title=current_user.name)
+        if 'confirm' in request.form:
+            db_sess = db_session.create_session()
+            user = db_sess.query(User).filter(User.email == current_user.email).first()
+            confirmation_code = serializer.dumps(user.id, salt='confirm-salt')
+            confirm_url = f'{request.host}/confirm/{confirmation_code}'
+            msg = MIMEText(f'''Please confirm your account by clicking the link below: {confirm_url}''', 'html')
+            msg['Subject'] = 'Account Confirmation Required'
+            msg['From'] = 'valerylarionov06@gmail.com'
+            msg['To'] = user.email
+
+            with smtplib.SMTP('smtp.gmail.com', 587) as server:
+                server.starttls()
+                server.login('valerylarionov06@gmail.com', 'hafg vjqg nywe khnu')
+                server.sendmail('valerylarionov06@gmail.com', [user.email], msg.as_string())
+            return render_template('home.html', title=current_user.name,
+                                   text='Зайдите на почту и подтвердите свою учетную запись в течение трёх минут')
+        return render_template('home.html', title=current_user.name, text='')
 
 
 @app.route('/logout')
@@ -174,6 +243,7 @@ def sms():
             print('btn_translate_russ was pressed')
         return render_template(template_name_or_list='sms.html', form=form, title='sms')
 
+
 @app.route('/im', methods=['GET', 'POST'])
 def im():
     if not current_user.is_authenticated:
@@ -191,7 +261,6 @@ def im():
 
     if user:
         return render_template(template_name_or_list='im.html', form=form, title=user.name)
-
 
 
 @app.route('/search_user')
