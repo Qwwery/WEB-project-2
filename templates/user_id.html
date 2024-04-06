@@ -17,7 +17,7 @@
             {% elif button_info == 'sent' %}
                <button name="cancel_request" type="submit" class="btn btn-danger btn_sms">Отменить запрос</button>
             {% elif button_info == 'other' %}
-                <p class="btn btn-primary"><a href="/im?sel={{ user.id }}" style="color: white">Перейти к личным сообщениям</a></p>
+                <a class="btn btn-primary" href="/im?sel={{ user.id }}" style="color: white">Перейти к личным сообщениям</a>
                 <button name="delete" type="submit" class="btn btn-danger">Удалить из друзей</button><br>
             {% elif button_info == 'dialog' %}
                 <h3>Вы уверены, что хотите удалить пользователя {{ name }}?</h3>

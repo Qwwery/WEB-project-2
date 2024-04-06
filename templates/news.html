@@ -31,7 +31,15 @@
             </a>
         </div>
         {% endif %}
-    <p align="right">{{ authors[loop.index - 1] }}</p>
+    {% if current_user.is_authenticated %}
+        {% if current_user.id == new.author %}
+            <p align="right"><a href="home/{{ new.author }}" class="links">{{ authors[loop.index - 1] }}</a></p>
+        {% else %}
+            <p align="right"><a href="user/{{ new.author }}" class="links">{{ authors[loop.index - 1] }}</a></p>
+        {% endif %}
+    {% else %}
+        <p align="right">{{ authors[loop.index - 1] }}</p>
+    {% endif %}
     <hr>
     {% endif %}
     {% endfor %}
