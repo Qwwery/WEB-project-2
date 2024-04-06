@@ -396,7 +396,10 @@ def user(id):
             return render_template('user_id.html', **info, title=user.name,
                                    text='Этот пользователь хочет с вами дружить!', button_info='sumbit')
     except Exception:  # записи не нашлось в бд
-        return render_template('user_id.html', **info, title=user.name, text='', button_info='add')
+        try:
+            return render_template('user_id.html', **info, title=user.name, text='', button_info='add')
+        except Exception:
+            abort(404)
 
     check_friend = db_sess.query(Friends).filter(Friends.first_id == current_user.id, Friends.second_id == id).first()
     if check_friend.mans_attitude == 'friends':
