@@ -3,13 +3,7 @@
 {% block content %}
 <form action="" method="post" class="login_form">
     <h4>Привет, {{ current_user.name }}! это ваша домашняя страница!</h4>
-    {% if current_user.confirmed == False %}
-        <a href="/logout" class="btn btn-warning">Выйти из аккаунта</a>
-        <button name="confirm" type="submit" class="btn btn-danger btn_sms">Подтвердить учетную запись</button><br>
-        {{text}}
-    {% else %}
-        <a href="/logout" class="btn btn-warning">Выйти из аккаунта</a><br>
-        {{text}}<br>
-    {% endif %}
+
+    <a href="/logout" class="btn btn-warning">Выйти из аккаунта</a>
 </form>
 {% endblock %}

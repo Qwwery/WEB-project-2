@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+<form action="" method="post" class="login_form">
+    <h1>Изменение новости</h1>
+    {{ form.csrf_token }}
+    {{ form.hidden_tag() }}
+    <p>
+        {{ form.name.label }}<br>
+        {{ form.name(class="form-control", type="text") }}<br>
+        {% for error in form.name.errors %}
+            <div class="alert alert-danger" role="alert">
+                {{ error }}
+            </div>
+        {% endfor %}
+    </p>
+    <p>
+        {{ form.text.label }}<br>
+        {{ form.text(class="form-control", type="text") }}<br>
+        {% for error in form.text.errors %}
+            <div class="alert alert-danger" role="alert">
+                {{ error }}
+            </div>
+        {% endfor %}
+    </p>
+    <p>{{ form.private() }} {{ form.private.label }}</p>
+
+    {% if action == 'confirm_del' %}
+    <div>
+        <h4 align="center">Вы уверены, что хотите удалить эту новость?</h4>
+        <button style="margin-left: 37%" name="yes" type="submit" class="btn btn-danger">Удалить</button>
+        <button name="no" type="submit" class="btn btn-primary">Отмена</button><br>
+    </div>
+    {% else %}
+        <button name="edit" type="submit" class="btn btn-primary btn_sms">Принять изменения</button>
+        <button name="confirm_del" type="submit" class="btn btn-danger btn_sms">Удалить новость</button>
+    {% endif %}
+
+    <div>{{ message }}</div>
+</form>
+{% endblock %}
