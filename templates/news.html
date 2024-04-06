@@ -14,25 +14,25 @@
     {% endif %}
     <hr>
     {% for new in news %}
-    <h3 align="center">{{ new.name }}</h3>
-    <a>{{ new.text }}</a>
-    <p>{{ new.data_str }}</p>
-    {% if current_user.is_authenticated and current_user == new.user_relationship %}
+    {% if (current_user.is_authenticated and new.private == True) or (new.private == False) %}
+        <h3 align="center">{{ new.name }}</h3>
+        <a>{{ new.text }}</a>
+        <p>{{ new.data_str }}</p>
+        {% if current_user.is_authenticated and current_user == new.user_relationship %}
+            <div>
+                <a href="/edit_news/{{ new.id }}" class="btn btn-primary btn_sms">
+                    Настройки новости
+                </a>
+            </div>
+         {% elif current_user.is_authenticated and current_user.id == admin_id %}
         <div>
             <a href="/edit_news/{{ new.id }}" class="btn btn-primary btn_sms">
                 Настройки новости
             </a>
         </div>
-    {% elif current_user.is_authenticated and current_user.id == admin_id %}
-        <div>
-            <a href="/edit_news/{{ new.id }}" class="btn btn-primary btn_sms">
-                Настройки новости
-            </a>
-        </div>
+        <p align="right">{{ authors[loop.index - 1] }}</p>
+        <hr>
     {% endif %}
-
-    <p align="right">{{ authors[loop.index - 1] }}</p>
-    <hr>
     {% endfor %}
     <h3 align="center">Вы дошли до конца!</h3>
 </form>

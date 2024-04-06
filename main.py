@@ -25,9 +25,6 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'sdasdgaWFEKjwEKHFNLk;jnFKLJNpj`1`p142QEW:jqwegpoqjergplqwejg;lqeb'
 
 
-db_session.global_init("db/db.db")
-
-
 def main():
     db_session.global_init("db/db.db")
     app.run(debug=True)
@@ -87,8 +84,9 @@ def first():
 
     authors = []
     for new in news:
-        authors.append(db_sess.query(User).filter(User.id == new.author).first().name)
-
+        name = db_sess.query(User).filter(User.id == new.author).first().name
+        surname = db_sess.query(User).filter(User.id == new.author).first().surname
+        authors.append(f"{surname} {name}")
         # new.data = get_str_time(new.data)
         new.date = datetime.datetime.now()
 
@@ -428,7 +426,6 @@ def friend_requests():
         'title': 'Заявки в друзья'
     }
     return render_template('friend_requests.html', **info)
-
 
 
 @app.route('/edit_news/<int:id>', methods=['GET', 'POST'])
