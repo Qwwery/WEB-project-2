@@ -24,19 +24,12 @@ from email.mime.text import MIMEText
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'sdasdgaWFEKjwEKHFNLk;jnFKLJNpj`1`p142QEW:jqwegpoqjergplqwejg;lqeb'
 
-
 db_session.global_init("db/db.db")
 
 
 def main():
     db_session.global_init("db/db.db")
     app.run(debug=True)
-
-
-if __name__ == '__main__':
-    db_session.global_init("db/db.db")
-    main()
-
 
 
 serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
@@ -65,7 +58,6 @@ def webhook():
 def load_user(user_id):
     db_sess = db_session.create_session()
     return db_sess.query(User).get(user_id)
-
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -392,7 +384,6 @@ def friend_requests():
         'title': 'Заявки в друзья'
     }
     return render_template('friend_requests.html', **info)
-
 
 
 @app.route('/edit_news/<int:id>', methods=['GET', 'POST'])
