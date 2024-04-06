@@ -2,7 +2,7 @@
 
 {% block content %}
 <form action="" class="login_form" method="post">
-    <h1>Пользователь {{ user.name }}</h1>
+    <h1>Пользователь {{ user.surname }} {{ user.name }}</h1>
     <div>
         {% if current_user.is_authenticated %}
             {% if button_info == 'sumbit' %}

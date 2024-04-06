@@ -5,7 +5,7 @@
     <input align="center" type="text" class="form-control" placeholder="Введите имя пользователя, которого вы ищите."
            aria-label="Username" aria-describedby="basic-addon1" id="name" name="search"><br>
     {% for user in friends %}
-        <p><a href="user/{{ user.id }}" class="links">{{ user.name }}</a><br></p><hr>
+        <p><a href="user/{{ user.id }}" class="links">{{ user.surname }} {{user.name}}</a><br></p><hr>
 
     {% endfor %}
     {% if action == 'btn' %}

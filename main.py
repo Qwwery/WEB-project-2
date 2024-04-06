@@ -83,7 +83,9 @@ def first():
 
     authors = []
     for new in news:
-        authors.append(db_sess.query(User).filter(User.id == new.author).first().name)
+        name = db_sess.query(User).filter(User.id == new.author).first().name
+        surname = db_sess.query(User).filter(User.id == new.author).first().surname
+        authors.append(f"{surname} {name}")
         # new.data = get_str_time(new.data)
         new.date = datetime.datetime.now()
 
