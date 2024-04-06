@@ -5,12 +5,17 @@
     <input align="center" type="text" class="form-control" placeholder="Введите имя пользователя, которого вы ищите."
            aria-label="Username" aria-describedby="basic-addon1" id="name" name="search"><br>
     {% for user in users %}
-    <a href="user/{{ user.id }}" class="links">{{ user.surname }} {{user.name}}</a><br>
+    <a href="user/{{ user.id }}" class="links">{{ user.surname }} {{user.name}}</a>
+    {% if user.confirmed == True %}
+        <img src="{{url_for('static', filename='img/galka.png')}}" style="max-width: 2.14%">
+    {% endif %}
+    <br>
     <hr>
     {% endfor %}
 
     {% if action == 'btn' %}
-        <button name="all" type="submit" class=" btn-warning  btn_all_friend btn">Убрать поиск по вводу</button>
+    <button name="all" type="submit" class=" btn-warning  btn_all_friend btn">Убрать поиск по вводу</button>
     {% endif %}
+
 </form>
 {% endblock %}

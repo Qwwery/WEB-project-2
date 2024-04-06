@@ -2,7 +2,11 @@
 
 {% block content %}
 <form action="" class="login_form" method="post">
-    <h1>Пользователь {{ user.surname }} {{ user.name }}</h1>
+    <h1>Пользователь {{ user.surname }} {{ user.name }}
+    {% if user.confirmed == True %}
+            <img src="{{url_for('static', filename='img/galka.png')}}" style="max-width: 3.74%">
+            {% endif %}
+    </h1>
     <div>
         {% if current_user.is_authenticated %}
             {% if button_info == 'sumbit' %}
