@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, abort
 from sqlalchemy.orm import Session
 
-from data.users import User # test 2
+from data.users import User  # test 2
 from data.news import News
 from data import db_session
 from flask_login import LoginManager, login_user, current_user, logout_user, login_required
