@@ -19,6 +19,7 @@ class User(SqlAlchemyBase, UserMixin):
     hashed_password = sqlalchemy.Column(sqlalchemy.String)
     modified_date = sqlalchemy.Column(sqlalchemy.DateTime, default=datetime.datetime.now())
     news_relationship = orm.relationship("News", back_populates="user_relationship")
+    confirmed = sqlalchemy.Column(sqlalchemy.Boolean, default=False)
 
     def __repr__(self):
         return f"<User> id:{self.id}, surname:{self.surname}, name:{self.name}"

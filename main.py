@@ -1,7 +1,7 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, abort
 from sqlalchemy.orm import Session
 
-from data.users import User
+from data.users import User # test 2
 from data.news import News
 from data import db_session
 from flask_login import LoginManager, login_user, current_user, logout_user, login_required
@@ -33,10 +33,7 @@ def main():
     app.run(debug=True)
 
 
-
-
 serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
-
 login_manager = LoginManager()
 login_manager.init_app(app)
 
@@ -61,11 +58,6 @@ def webhook():
 def load_user(user_id):
     db_sess = db_session.create_session()
     return db_sess.query(User).get(user_id)
-
-
-def main():
-    db_session.global_init("db/db.db")
-    app.run(debug=True)
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -103,7 +95,7 @@ def first():
         'authors': authors
     }
 
-    return render_template('news.html', **info, title='NaSvyazi', text=text)
+    return render_template('news.html', **info, title='NaSvyazi', text=text, action='')
 
 
 @app.route('/confirm/<confirmation_code>')
@@ -198,9 +190,13 @@ def new_news():
     return render_template('new_news.html', form=form, title='Новая новость')
 
 
-@app.route('/home/<name>', methods=['GET', 'POST'])
-def home(name):
-    if current_user.name == name:
+@app.route('/home/<int:id>', methods=['GET', 'POST'])
+def home(id):
+    try:
+        id_user = current_user.id
+    except Exception:
+        abort(404)
+    if id_user == id:
         if 'confirm' in request.form:
             db_sess = db_session.create_session()
             user = db_sess.query(User).filter(User.email == current_user.email).first()
