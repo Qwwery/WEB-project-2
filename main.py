@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, abort
 from sqlalchemy.orm import Session
 
-from data.users import User
+from data.users import User # test 2
 from data.news import News
 from data import db_session
 from flask_login import LoginManager, login_user, current_user, logout_user, login_required
@@ -34,7 +34,6 @@ def main():
 
 
 serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
-
 login_manager = LoginManager()
 login_manager.init_app(app)
 
@@ -61,7 +60,6 @@ def load_user(user_id):
     return db_sess.query(User).get(user_id)
 
 
-
 @app.route('/', methods=['GET', 'POST'])
 def first():
     db_sess = db_session.create_session()
@@ -71,7 +69,7 @@ def first():
             user = db_sess.query(User).filter(User.email == current_user.email).first()
             confirmation_code = serializer.dumps(user.id, salt='confirm-salt')
             confirm_url = f'{request.host}/confirm/{confirmation_code}'
-            msg = MIMEText(f'''Подтвердите учетную запись от NaSvyazi, перейдя по ссылке: {confirm_url}.\n
+            msg = MIMEText(f'''Подтвердите учетную запись от NaSvyazi, перейдя по ссылке: {confirm_url}.\n 
             Если вы не отправляли запрос, игнорируйте это сообщение''', 'html')
             msg['Subject'] = 'Account Confirmation Required'
             msg['From'] = 'valerylarionov06@gmail.com'
@@ -96,7 +94,28 @@ def first():
         'news': news,
         'authors': authors
     }
-    return render_template('news.html', **info, title='NaSvyazi', action='')
+
+    return render_template('news.html', **info, title='NaSvyazi', text=text, action='')
+
+
+@app.route('/confirm/<confirmation_code>')
+def confirm(confirmation_code):
+    db_sess = db_session.create_session()
+    try:
+        unconfirmed_user_id = serializer.loads(confirmation_code, salt='confirm-salt', max_age=180)
+        user = db_sess.query(User).filter(User.id == unconfirmed_user_id).first()
+
+        if unconfirmed_user_id is not None:
+            user.confirmed = True
+            db_sess.commit()
+
+            return render_template('home.html', text='Вы подтвердили вашу учетную запись')
+        else:
+            return render_template('confirmed_sms.html', title='NaSvyazi', text='Неизвестная ошибка')
+    except Exception as text:
+        print(text)
+        return render_template('confirmed_sms.html', title='NaSvyazi',
+                               text='Ошибка, возможно, превышено время. Попробуйте еще раз')
 
 
 @app.route('/registration', methods=['GET', 'POST'])
@@ -171,10 +190,30 @@ def new_news():
     return render_template('new_news.html', form=form, title='Новая новость')
 
 
-@app.route('/home/<name>', methods=['GET', 'POST'])
-def home(name):
-    if current_user.name == name:
-        return render_template('home.html', title=current_user.name)
+@app.route('/home/<int:id>', methods=['GET', 'POST'])
+def home(id):
+    try:
+        id_user = current_user.id
+    except Exception:
+        abort(404)
+    if id_user == id:
+        if 'confirm' in request.form:
+            db_sess = db_session.create_session()
+            user = db_sess.query(User).filter(User.email == current_user.email).first()
+            confirmation_code = serializer.dumps(user.id, salt='confirm-salt')
+            confirm_url = f'{request.host}/confirm/{confirmation_code}'
+            msg = MIMEText(f'''Please confirm your account by clicking the link below: {confirm_url}''', 'html')
+            msg['Subject'] = 'Account Confirmation Required'
+            msg['From'] = 'valerylarionov06@gmail.com'
+            msg['To'] = user.email
+
+            with smtplib.SMTP('smtp.gmail.com', 587) as server:
+                server.starttls()
+                server.login('valerylarionov06@gmail.com', 'hafg vjqg nywe khnu')
+                server.sendmail('valerylarionov06@gmail.com', [user.email], msg.as_string())
+            return render_template('home.html', title=current_user.name,
+                                   text='Зайдите на почту и подтвердите свою учетную запись в течение трёх минут')
+        return render_template('home.html', title=current_user.name, text='')
 
 
 @app.route('/logout')

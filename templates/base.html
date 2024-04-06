@@ -21,12 +21,12 @@
 </head>
 <body>
     <aside style="white-space: normal">
-        <h1 style="word-break: break-all"><a href="/" style="color: #FFFFFF">NaSvyazi</a></h1>
+        <h3 style="word-break: break-all"><a href="/" style="color: #FFFFFF">NaSvyazi</a></h3>
         <h3 style="word-break: break-all; color: #FFF">Навигация</h3>
         <ul>
-            <a href="/" class="links"><li><i class="bi bi-person-add"></i> Главная</li></a>
+            <a href="/" class="links_navigator"><li><i class="bi bi-person-add"></i> Главная</li></a>
             {% if current_user.is_authenticated %}
-                <a href="/home/{{ current_user.name }}" class="links_navigator"><li><i class="bi bi-person-add"></i> Профиль</li></a>
+                <a href="/home/{{ current_user.id }}" class="links_navigator"><li><i class="bi bi-person-add"></i> Профиль</li></a>
                 <a href="/friends" class="links_navigator"><li><i class="bi bi-person-add"></i>Ваши Друзья</li></a>
                 <a href="/search_user" class="links_navigator"><li><i class="bi bi-person-add"></i> Поиск друзей</li></a>
                 <a href="/friend_requests" class="links_navigator"><li><i class="bi bi-person-add"></i> Заявки в друзья</li></a>
