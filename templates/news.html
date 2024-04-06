@@ -23,7 +23,14 @@
                 Настройки новости
             </a>
         </div>
-        {% endif %}
+    {% elif current_user.is_authenticated and current_user.id == admin_id %}
+        <div>
+            <a href="/edit_news/{{ new.id }}" class="btn btn-primary btn_sms">
+                Настройки новости
+            </a>
+        </div>
+    {% endif %}
+
     <p align="right">{{ authors[loop.index - 1] }}</p>
     <hr>
     {% endfor %}
