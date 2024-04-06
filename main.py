@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, abort
 from sqlalchemy.orm import Session
 
 from data.users import User
@@ -9,6 +9,7 @@ from forms.login import LoginForm
 from forms.reg_form import RegForm
 from forms.news_form import NewsForm
 from forms.sms_form import SmsForm
+from forms.edit_news_form import EditNewsForm
 from translate import eng_to_rus, rus_to_eng, make_translate
 from data.friends import Friends
 from time_news import get_str_time  # deleted
@@ -16,9 +17,29 @@ import datetime
 import git
 import pytz
 import logging
+from itsdangerous import URLSafeTimedSerializer
+import smtplib
+from email.mime.text import MIMEText
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'sdasdgaWFEKjwEKHFNLk;jnFKLJNpj`1`p142QEW:jqwegpoqjergplqwejg;lqeb'
+
+
+db_session.global_init("db/db.db")
+
+
+def main():
+    db_session.global_init("db/db.db")
+    app.run(debug=True)
+
+
+if __name__ == '__main__':
+    db_session.global_init("db/db.db")
+    main()
+
+
+
+serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -46,14 +67,28 @@ def load_user(user_id):
     return db_sess.query(User).get(user_id)
 
 
-def main():
-    db_session.global_init("db/db.db")
-    app.run(debug=True)
 
-
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def first():
     db_sess = db_session.create_session()
+    text = ''
+    if request.method == 'POST':
+        if 'confirm' in request.form:
+            user = db_sess.query(User).filter(User.email == current_user.email).first()
+            confirmation_code = serializer.dumps(user.id, salt='confirm-salt')
+            confirm_url = f'{request.host}/confirm/{confirmation_code}'
+            msg = MIMEText(f'''Подтвердите учетную запись от NaSvyazi, перейдя по ссылке: {confirm_url}.\n
+            Если вы не отправляли запрос, игнорируйте это сообщение''', 'html')
+            msg['Subject'] = 'Account Confirmation Required'
+            msg['From'] = 'valerylarionov06@gmail.com'
+            msg['To'] = user.email
+
+            with smtplib.SMTP('smtp.gmail.com', 587) as server:
+                server.starttls()
+                server.login('valerylarionov06@gmail.com', 'hafg vjqg nywe khnu')
+                server.sendmail('valerylarionov06@gmail.com', [user.email], msg.as_string())
+                text = 'Зайдите на почту и подтвердите свою учетную запись в течение трёх минут'
+
     news = db_sess.query(News).all()
     news = news[::-1]
 
@@ -67,7 +102,7 @@ def first():
         'news': news,
         'authors': authors
     }
-    return render_template('news.html', **info, title='NaSvyazi')
+    return render_template('news.html', **info, title='NaSvyazi', action='')
 
 
 @app.route('/registration', methods=['GET', 'POST'])
@@ -192,7 +227,7 @@ def im():
         return render_template(template_name_or_list='im.html', form=form, title=user.name)
 
 
-@app.route('/search_user')
+@app.route('/search_user', methods=['GET', 'POST'])
 def search_user():
     db_sess = db_session.create_session()
     all_users = db_sess.query(User).filter(User.id != current_user.id).all()
@@ -208,7 +243,20 @@ def search_user():
         'users': not_friends
     }
 
-    return render_template('search_user.html', **info, title='Поиск друзей')
+    if request.method == 'POST' and 'search' in request.form and len(request.form['search'].strip()) > 0:
+        name_search = request.form['search']
+        if len(name_search.strip()) > 0:
+            user_with_search = []
+            for elem in not_friends:
+                if name_search.lower() in elem.name.lower():
+                    user_with_search.append(elem)
+            info = {
+                'users': user_with_search
+            }
+        return render_template('search_user.html', **info, title='Поиск друзей', action='btn')
+    elif request.method == 'POST' and 'all' in request.form:
+        return render_template('search_user.html', **info, title='Поиск друзей', action='')
+    return render_template('search_user.html', **info, title='Поиск друзей', action='')
 
 
 @app.route('/user/<int:id>', methods=['GET', 'POST'])
@@ -311,14 +359,20 @@ def user(id):
     return render_template('user_id.html', **info, title=user.name, text='', button_info='add')
 
 
-@app.route('/friends')
+@app.route('/friends', methods=['GET', 'POST'])
 def friends():
     db_sess = db_session.create_session()
     friends_info = db_sess.query(Friends).filter(Friends.second_id == current_user.id,
                                                  Friends.mans_attitude == 'friends').all()
     friends_id = list(map(lambda x: x.first_id, friends_info))
     friends = db_sess.query(User).filter(User.id.in_(friends_id)).all()
-    return render_template('friends.html', friends=friends, title='Друзья')
+
+    if request.method == 'POST' and 'search' in request.form and len(request.form['search'].strip()) > 0:
+        friends = list(filter(lambda x: request.form['search'].lower() in x.name.lower(), friends))
+        return render_template('friends.html', friends=friends, title='Друзья', action='btn')
+    elif request.method == 'POST' and 'all' in request.form:
+        return render_template('friends.html', friends=friends, title='Друзья', action='')
+    return render_template('friends.html', friends=friends, title='Друзья', action='')
 
 
 @app.route('/friend_requests')
@@ -338,6 +392,45 @@ def friend_requests():
         'title': 'Заявки в друзья'
     }
     return render_template('friend_requests.html', **info)
+
+
+
+@app.route('/edit_news/<int:id>', methods=['GET', 'POST'])
+@login_required
+def news_edit(id):
+    form = EditNewsForm()
+    if request.method == "GET":
+        db_sess = db_session.create_session()
+        new_check = db_sess.query(News).filter(News.id == id).filter(News.author == current_user.id).first()
+
+        if new_check:
+            form.name.data = new_check.name
+            form.text.data = new_check.text
+            form.private.data = new_check.private
+        else:
+            abort(404)
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        new_obj = db_sess.query(News).filter(News.id == id).filter(News.author == current_user.id).first()
+        if 'edit' in request.form:
+            if new_obj:
+                new_obj.name = form.name.data
+                new_obj.text = form.text.data
+                new_obj.private = form.private.data
+                db_sess.merge(new_obj)
+                db_sess.commit()
+                return redirect('/')
+
+        elif 'confirm_del' in request.form:
+            return render_template('edit_news.html', title='Редактирование работы', form=form, action='confirm_del')
+        elif 'yes' in request.form:
+            if new_obj:
+                db_sess.delete(new_obj)
+                db_sess.commit()
+            else:
+                abort(404)
+            return redirect('/')
+    return render_template('edit_news.html', title='Редактирование работы', form=form, action='')
 
 
 if __name__ == '__main__':
