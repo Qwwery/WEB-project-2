@@ -5,9 +5,10 @@ aside {
     width: 14%;
     padding: 2.5%;
     height: 100vh;
-    border-right: 5px  #4d4d4d;
+    border-right: 5px #4d4d4d;
     border-bottom: solid;
 }
+
 form.login_form {
     max-width: 800px;
     background: SeaGreen;
@@ -28,7 +29,7 @@ aside {
     width: 14%;
     padding: 2.5%;
     height: 100vh;
-    border-right: 5px  #000000;
+    border-right: 5px #000000;
     border-bottom: solid;
 }
 
@@ -66,27 +67,31 @@ form.sms_login_form {
     padding-right: 4px;
 }
 
-.center_label{
+.center_label {
     text-align: center;
 }
 
-.btn_sms{
+.btn_sms {
     padding-left: 10px;
     padding-top: 3px;
 }
+
 hr {
-  border: none;
-  height: 1px;
-  color: black;
-  background-color: #333;  /* Modern Browsers */
+    border: none;
+    height: 1px;
+    color: black;
+    background-color: #333; /* Modern Browsers */
 }
 
-a.links{
+a.links {
     color: black;
     text-decoration: underline;
 }
 
-aside ul {list-style: none}
+aside ul {
+    list-style: none
+}
+
 aside ul a {
     color: black;
     text-decoration: underline;
@@ -101,6 +106,6 @@ aside ul a:hover, aside ul a:hover {
     transform: scale(1.05);
 }
 
-.error_confirmed{
-   margin-left: 35%;
+.btn_all_friend {
+    margin-left: 35%;
 }

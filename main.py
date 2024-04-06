@@ -9,6 +9,7 @@ from forms.login import LoginForm
 from forms.reg_form import RegForm
 from forms.news_form import NewsForm
 from forms.sms_form import SmsForm
+from forms.edit_news_form import EditNewsForm
 from translate import eng_to_rus, rus_to_eng, make_translate
 from data.friends import Friends
 from time_news import get_str_time  # deleted
@@ -22,7 +23,20 @@ from email.mime.text import MIMEText
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'sdasdgaWFEKjwEKHFNLk;jnFKLJNpj`1`p142QEW:jqwegpoqjergplqwejg;lqeb'
+
+
+db_session.global_init("db/db.db")
+
+
+def main():
+    db_session.global_init("db/db.db")
+    app.run(debug=True)
+
+
+
+
 serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+
 login_manager = LoginManager()
 login_manager.init_app(app)
 
@@ -266,7 +280,7 @@ def search_user():
         'users': not_friends
     }
 
-    if request.method == 'POST':
+    if request.method == 'POST' and 'search' in request.form and len(request.form['search'].strip()) > 0:
         name_search = request.form['search']
         if len(name_search.strip()) > 0:
             user_with_search = []
@@ -276,8 +290,10 @@ def search_user():
             info = {
                 'users': user_with_search
             }
-
-    return render_template('search_user.html', **info, title='Поиск друзей')
+        return render_template('search_user.html', **info, title='Поиск друзей', action='btn')
+    elif request.method == 'POST' and 'all' in request.form:
+        return render_template('search_user.html', **info, title='Поиск друзей', action='')
+    return render_template('search_user.html', **info, title='Поиск друзей', action='')
 
 
 @app.route('/user/<int:id>', methods=['GET', 'POST'])
@@ -380,14 +396,20 @@ def user(id):
     return render_template('user_id.html', **info, title=user.name, text='', button_info='add')
 
 
-@app.route('/friends')
+@app.route('/friends', methods=['GET', 'POST'])
 def friends():
     db_sess = db_session.create_session()
     friends_info = db_sess.query(Friends).filter(Friends.second_id == current_user.id,
                                                  Friends.mans_attitude == 'friends').all()
     friends_id = list(map(lambda x: x.first_id, friends_info))
     friends = db_sess.query(User).filter(User.id.in_(friends_id)).all()
-    return render_template('friends.html', friends=friends, title='Друзья')
+
+    if request.method == 'POST' and 'search' in request.form and len(request.form['search'].strip()) > 0:
+        friends = list(filter(lambda x: request.form['search'].lower() in x.name.lower(), friends))
+        return render_template('friends.html', friends=friends, title='Друзья', action='btn')
+    elif request.method == 'POST' and 'all' in request.form:
+        return render_template('friends.html', friends=friends, title='Друзья', action='')
+    return render_template('friends.html', friends=friends, title='Друзья', action='')
 
 
 @app.route('/friend_requests')
@@ -407,6 +429,45 @@ def friend_requests():
         'title': 'Заявки в друзья'
     }
     return render_template('friend_requests.html', **info)
+
+
+
+@app.route('/edit_news/<int:id>', methods=['GET', 'POST'])
+@login_required
+def news_edit(id):
+    form = EditNewsForm()
+    if request.method == "GET":
+        db_sess = db_session.create_session()
+        new_check = db_sess.query(News).filter(News.id == id).filter(News.author == current_user.id).first()
+
+        if new_check:
+            form.name.data = new_check.name
+            form.text.data = new_check.text
+            form.private.data = new_check.private
+        else:
+            abort(404)
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        new_obj = db_sess.query(News).filter(News.id == id).filter(News.author == current_user.id).first()
+        if 'edit' in request.form:
+            if new_obj:
+                new_obj.name = form.name.data
+                new_obj.text = form.text.data
+                new_obj.private = form.private.data
+                db_sess.merge(new_obj)
+                db_sess.commit()
+                return redirect('/')
+
+        elif 'confirm_del' in request.form:
+            return render_template('edit_news.html', title='Редактирование работы', form=form, action='confirm_del')
+        elif 'yes' in request.form:
+            if new_obj:
+                db_sess.delete(new_obj)
+                db_sess.commit()
+            else:
+                abort(404)
+            return redirect('/')
+    return render_template('edit_news.html', title='Редактирование работы', form=form, action='')
 
 
 if __name__ == '__main__':

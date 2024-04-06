@@ -4,13 +4,7 @@
 
 <form action="" class="login_form" method="post">
     {% if current_user.is_authenticated %}
-        {% if current_user.confirmed == False %}
-            <a href="/new_news" class="btn btn-warning">Добавить новость</a>
-            <button name="confirm" type="submit" class="btn btn-danger btn_sms">Подтвердить учетную запись</button><br>
-            {{text}}<br>
-        {% else %}
         <a href="/new_news" class="btn btn-warning">Добавить новость</a>
-        {% endif %}
     {% else %}
         <a href="/login" class="links"><i class="bi bi-person-add"></i> Войдите в аккаунт</a><a> чтобы просматривать скрытые новости!</a>
     {% endif %}
@@ -19,6 +13,13 @@
     <h1 align="center">{{ new.name }}</h1>
     <h3>{{ new.text }}</h3>
     <h5>{{ new.data_str }}</h5>
+    {% if current_user.is_authenticated and current_user == new.user_relationship %}
+        <div>
+            <a href="/edit_news/{{ new.id }}" class="btn btn-primary btn_sms">
+                Настройки новости
+            </a>
+        </div>
+        {% endif %}
     <p align="right">{{ authors[loop.index - 1] }}</p>
     <hr>
     {% endfor %}
