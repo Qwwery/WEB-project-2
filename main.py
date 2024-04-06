@@ -18,6 +18,8 @@ import git
 import pytz
 import logging
 from itsdangerous import URLSafeTimedSerializer
+import smtplib
+from email.mime.text import MIMEText
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'sdasdgaWFEKjwEKHFNLk;jnFKLJNpj`1`p142QEW:jqwegpoqjergplqwejg;lqeb'
