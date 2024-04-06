@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, abort
 from sqlalchemy.orm import Session
 
 from data.users import User
@@ -9,6 +9,7 @@ from forms.login import LoginForm
 from forms.reg_form import RegForm
 from forms.news_form import NewsForm
 from forms.sms_form import SmsForm
+from forms.edit_news_form import EditNewsForm
 from translate import eng_to_rus, rus_to_eng, make_translate
 from data.friends import Friends
 from time_news import get_str_time  # deleted
@@ -51,7 +52,7 @@ def main():
     app.run(debug=True)
 
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def first():
     db_sess = db_session.create_session()
     news = db_sess.query(News).all()
@@ -67,7 +68,7 @@ def first():
         'news': news,
         'authors': authors
     }
-    return render_template('news.html', **info, title='NaSvyazi')
+    return render_template('news.html', **info, title='NaSvyazi', action='')
 
 
 @app.route('/registration', methods=['GET', 'POST'])
@@ -357,6 +358,44 @@ def friend_requests():
         'title': 'Заявки в друзья'
     }
     return render_template('friend_requests.html', **info)
+
+
+@app.route('/edit_news/<int:id>', methods=['GET', 'POST'])
+@login_required
+def news_edit(id):
+    form = EditNewsForm()
+    if request.method == "GET":
+        db_sess = db_session.create_session()
+        new_check = db_sess.query(News).filter(News.id == id).filter(News.author == current_user.id).first()
+
+        if new_check:
+            form.name.data = new_check.name
+            form.text.data = new_check.text
+            form.private.data = new_check.private
+        else:
+            abort(404)
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        new_obj = db_sess.query(News).filter(News.id == id).filter(News.author == current_user.id).first()
+        if 'edit' in request.form:
+            if new_obj:
+                new_obj.name = form.name.data
+                new_obj.text = form.text.data
+                new_obj.private = form.private.data
+                db_sess.merge(new_obj)
+                db_sess.commit()
+                return redirect('/')
+
+        elif 'confirm_del' in request.form:
+            return render_template('edit_news.html', title='Редактирование работы', form=form, action='confirm_del')
+        elif 'yes' in request.form:
+            if new_obj:
+                db_sess.delete(new_obj)
+                db_sess.commit()
+            else:
+                abort(404)
+            return redirect('/')
+    return render_template('edit_news.html', title='Редактирование работы', form=form, action='')
 
 
 if __name__ == '__main__':
