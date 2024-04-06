@@ -86,6 +86,13 @@ hr {
 a.links {
     color: black;
     text-decoration: underline;
+    transition: all .2s ease;
+}
+
+a.links:hover {
+    color: #92f855;
+    text-decoration: underline;
+    transform: scale(1.05);
 }
 
 aside ul {
@@ -101,9 +108,10 @@ aside ul a {
 }
 
 aside ul a:hover, aside ul a:hover {
-    color: white;
+    color: black;
     text-decoration: none;
     transform: scale(1.05);
+    background: #92f855;
 }
 
 .btn_all_friend {
