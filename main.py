@@ -62,7 +62,7 @@ def load_user(user_id):
 def first():
     db_sess = db_session.create_session()
     text = ''
-    admin_id = db_sess.query(User).filter(User.email == 'regeneration76@yandex.ru').first()
+    admin_id = db_sess.query(User).filter(User.email == 'regeneration76@yandex.ru' or User.email == 'valerylarionov06@gmail.com').first()
     if request.method == 'POST':
         if 'confirm' in request.form:
             user = db_sess.query(User).filter(User.email == current_user.email).first()
@@ -90,7 +90,6 @@ def first():
         authors.append(f"{surname} {name}")
         # new.data = get_str_time(new.data)
         new.date = datetime.datetime.now()
-
     info = {
         'news': news,
         'authors': authors
@@ -445,7 +444,7 @@ def news_edit(id):
     if request.method == "GET":
         db_sess = db_session.create_session()
         new_check = db_sess.query(News).filter(News.id == id).filter(News.author == current_user.id).first()
-        if current_user.email == 'regeneration76@yandex.ru':
+        if current_user.email == 'regeneration76@yandex.ru' or current_user.email == 'valerylarionov06@gmail.com':
             new_check = db_sess.query(News).filter(News.id == id).first()
 
         if new_check:
@@ -457,7 +456,7 @@ def news_edit(id):
     if form.validate_on_submit():
         db_sess = db_session.create_session()
         new_obj = db_sess.query(News).filter(News.id == id).filter(News.author == current_user.id).first()
-        if current_user.email == 'regeneration76@yandex.ru':
+        if current_user.email == 'regeneration76@yandex.ru' or current_user.email == 'valerylarionov06@gmail.com':
             new_obj = db_sess.query(News).filter(News.id == id).first()
         if 'edit' in request.form:
             if new_obj:
