@@ -92,9 +92,10 @@ def first():
 
     info = {
         'news': news,
-        'authors': authors,
-        'admin_id': admin_id.id
+        'authors': authors
     }
+    if admin_id:
+        info['admin_id'] = admin_id.id
 
     return render_template('news.html', **info, title='NaSvyazi', text=text, action='')
 
