@@ -17,7 +17,7 @@ import datetime
 import git
 import pytz
 import logging
-from itsdangerous.url_safe import URLSafeSerializer
+from itsdangerous import URLSafeTimedSerializer
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'sdasdgaWFEKjwEKHFNLk;jnFKLJNpj`1`p142QEW:jqwegpoqjergplqwejg;lqeb'
