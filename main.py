@@ -62,7 +62,8 @@ def load_user(user_id):
 def first():
     db_sess = db_session.create_session()
     text = ''
-    admin_id = db_sess.query(User).filter(User.email == 'regeneration76@yandex.ru' or User.email == 'valerylarionov06@gmail.com').first()
+    admin_id = db_sess.query(User).filter(
+        User.email == 'regeneration76@yandex.ru' or User.email == 'valerylarionov06@gmail.com').first()
     if request.method == 'POST':
         if 'confirm' in request.form:
             user = db_sess.query(User).filter(User.email == current_user.email).first()
@@ -127,7 +128,8 @@ def registration():
         db_sess = db_session.create_session()
         check_user = db_sess.query(User)
         if check_user.filter(User.email == form.email.data).first():
-            return render_template('registration.html', message="Ошибка регистрации: пользователь с такой почтой уже существует", form=form,
+            return render_template('registration.html',
+                                   message="Ошибка регистрации: пользователь с такой почтой уже существует", form=form,
                                    title='Регистрация')
         age = form.age.data
         if age < 1 or age > 150:
@@ -224,6 +226,8 @@ def home(id):
             return render_template('home.html', title=current_user.name,
                                    text='Зайдите на почту и подтвердите свою учетную запись в течение трёх минут')
         return render_template('home.html', title=current_user.name, text='')
+    else:
+        abort(404)
 
 
 @app.route('/logout')
