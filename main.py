@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, abort
 from sqlalchemy.orm import Session
 
-from data.users import User # test 2
+from data.users import User  # test 2
 from data.news import News
 from data import db_session
 from flask_login import LoginManager, login_user, current_user, logout_user, login_required
@@ -23,9 +23,6 @@ from email.mime.text import MIMEText
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'sdasdgaWFEKjwEKHFNLk;jnFKLJNpj`1`p142QEW:jqwegpoqjergplqwejg;lqeb'
-
-
-db_session.global_init("db/db.db")
 
 
 def main():
@@ -425,7 +422,6 @@ def friend_requests():
         'title': 'Заявки в друзья'
     }
     return render_template('friend_requests.html', **info)
-
 
 
 @app.route('/edit_news/<int:id>', methods=['GET', 'POST'])
