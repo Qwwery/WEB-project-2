@@ -33,12 +33,6 @@ def main():
     app.run(debug=True)
 
 
-if __name__ == '__main__':
-    db_session.global_init("db/db.db")
-    main()
-
-
-
 serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 
 login_manager = LoginManager()
