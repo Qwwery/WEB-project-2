@@ -1,6 +1,9 @@
 from flask import Flask, render_template, request, redirect, abort
 from sqlalchemy.orm import Session
 
+import ast
+from time import time
+import requests
 from data.users import User  # test 2
 from data.news import News
 from data import db_session
@@ -12,9 +15,11 @@ from forms.sms_form import SmsForm
 from forms.edit_news_form import EditNewsForm
 from translate import eng_to_rus, rus_to_eng, make_translate
 from data.friends import Friends
+from data.messages import Messages
 from time_news import get_str_time  # deleted
 import datetime
 import git
+import json
 import pytz
 import logging
 from itsdangerous import URLSafeTimedSerializer
@@ -41,6 +46,98 @@ def page_not_found(e):
     return render_template('404.html')
 
 
+database = []
+@app.route('/send', methods=['POST'])
+def send():
+    data = request.json
+    print(data)
+
+    name = data['name']
+    text = data['text']
+
+    if not isinstance(data, dict) or 'name' not in data or 'text' not in data:
+        return abort(404)
+
+    message = {
+        'name': name,
+        'text': text,
+        'time': time()
+    }
+
+    database.append(message)
+
+    return {'ok': True}
+
+
+@app.route(f'/messages', methods=['GET', 'POST'])
+def get_message():
+    db_sess = db_session.create_session()
+    data = request.args
+
+    try:
+        author = data['author']
+        before = data['before']
+        assert int(current_user.id) == int(author)
+        friends = db_sess.query(Friends).filter(Friends.first_id == author, Friends.second_id == before).first()
+        assert friends
+
+    except Exception:
+        return abort(404)
+
+    messages = db_sess.query(Messages).filter(((Messages.author == author) & (Messages.before == before)) | ((Messages.author == before) & (Messages.before == author))).all()
+
+    if messages is None:
+        if friends.mans_attitude == 'friends':
+            messages = Messages(author=author, before=before, js_message='{}')
+            db_sess.add(messages)
+            db_sess.commit()
+        else:
+            abort(404)
+
+    form = SmsForm()
+    if request.method == 'POST' and form.validate_on_submit():
+        name = current_user.name
+        text = request.form['text']
+        response = requests.post(url="http://127.0.0.1:5000/send", json={"name": name, "text": text})
+
+        new_message = Messages(author=author, before=before, js_message=str({"name": name, "text": text}))
+        db_sess.add(new_message)
+        db_sess.commit()
+        return redirect(f'/messages?author={author}&before={before}')
+
+    elif request.method == 'GET':
+        result_message = []
+        for message in messages:
+            result_message.append(ast.literal_eval(message.js_message))
+        print(result_message)
+        info = {
+            'messages': result_message
+        }
+        return render_template('sms.html', **info, form=form)
+
+
+
+
+    # form = SmsForm()
+    # try:
+    #     after = float(request.args['after'])
+    # except Exception as e:
+    #     print(e)
+    #     return abort(404)
+    #
+    # messages = []
+    #
+    # for message in database:
+    #     if message['time'] > after:
+    #         messages.append(message)
+    #
+    # info = {
+    #     'messages': messages[:200]
+    # }
+    #
+    # return render_template('messages.html', **info, form=form)
+
+
 @app.route('/secret_update', methods=["POST"])
 def webhook():
     if request.method == 'POST':
@@ -55,7 +152,9 @@ def webhook():
 @login_manager.user_loader
 def load_user(user_id):
     db_sess = db_session.create_session()
-    return db_sess.query(User).get(user_id)
+
+    # return db_sess.query(User).get(user_id)
+    return db_sess.get(User, user_id)
 
 
 @app.route('/', methods=['GET', 'POST'])
