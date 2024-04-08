@@ -4,7 +4,9 @@
 <body>
 <h1 align="center"> Чат {{name_chat}}</h1>
 <div class="scrole_sms frame_sms">
-    <p>text</p>
+    {% for message in messages %}
+        <p>{{ message.name }}: {{ message.text }}</p>
+    {% endfor %}
 
 </div>
 <form class="sms_login_form center_label" method="post">
