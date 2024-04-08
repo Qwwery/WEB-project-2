@@ -2,7 +2,7 @@
 
 {% block content %}
 <body>
-<h1 align="center"> Чат {{name_chat}}</h1>
+<h1 class="h1_sms"> Чат {{name_chat}}</h1>
 <div class="scrole_sms frame_sms">
     {% for message in messages %}
         <p>{{ message.name }}: {{ message.text }}</p>

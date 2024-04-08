@@ -40,20 +40,23 @@ aside .logo {
     position: relative;
 }
 
+.h1_sms{
+    margin-left: 55%;
+}
 .scrole_sms {
-    width: 1000px;
+    width: 57%;
     height: 500px;
     overflow-x: scroll;
     overflow-y: scroll;
-    margin-left: auto;
+    margin-left: 30%;
     margin-right: auto;
 }
 
 form.sms_login_form {
-    max-width: 1000px;
+    max-width: 57%;
     background: SeaGreen;
     border-radius: 4px;
-    margin-left: auto;
+    margin-left: 30%;
     margin-right: auto;
     border-style: solid;
     border-color: black;
