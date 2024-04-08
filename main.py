@@ -116,28 +116,6 @@ def get_message():
         return render_template('sms.html', **info, form=form)
 
 
-
-
-    # form = SmsForm()
-    # try:
-    #     after = float(request.args['after'])
-    # except Exception as e:
-    #     print(e)
-    #     return abort(404)
-    #
-    # messages = []
-    #
-    # for message in database:
-    #     if message['time'] > after:
-    #         messages.append(message)
-    #
-    # info = {
-    #     'messages': messages[:200]
-    # }
-    #
-    # return render_template('messages.html', **info, form=form)
-
-
 @app.route('/secret_update', methods=["POST"])
 def webhook():
     if request.method == 'POST':
@@ -161,8 +139,6 @@ def load_user(user_id):
 def first():
     db_sess = db_session.create_session()
     text = ''
-    admin_id = db_sess.query(User).filter(
-        User.email == 'regeneration76@yandex.ru' or User.email == 'valerylarionov06@gmail.com').first()
     if request.method == 'POST':
         if 'confirm' in request.form:
             user = db_sess.query(User).filter(User.email == current_user.email).first()
@@ -194,10 +170,51 @@ def first():
         'news': news,
         'authors': authors
     }
-    if admin_id:
-        info['admin_id'] = admin_id.id
+
 
     return render_template('news.html', **info, title='NaSvyazi', text=text, action='')
+
+
+@app.route('/edit_news/<int:id>', methods=['GET', 'POST'])
+@login_required
+def news_edit(id):
+    form = EditNewsForm()
+    if request.method == "GET":
+        db_sess = db_session.create_session()
+        new_check = db_sess.query(News).filter(News.id == id).filter(News.author == current_user.id).first()
+        if current_user.email == 'regeneration76@yandex.ru' or current_user.email == 'valerylarionov06@gmail.com':
+            new_check = db_sess.query(News).filter(News.id == id).first()
+
+        if new_check:
+            form.name.data = new_check.name
+            form.text.data = new_check.text
+            form.private.data = new_check.private
+        else:
+            abort(404)
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        new_obj = db_sess.query(News).filter(News.id == id).filter(News.author == current_user.id).first()
+        if current_user.email == 'regeneration76@yandex.ru' or current_user.email == 'valerylarionov06@gmail.com':
+            new_obj = db_sess.query(News).filter(News.id == id).first()
+        if 'edit' in request.form:
+            if new_obj:
+                new_obj.name = form.name.data
+                new_obj.text = form.text.data
+                new_obj.private = form.private.data
+                db_sess.merge(new_obj)
+                db_sess.commit()
+                return redirect('/')
+
+        elif 'confirm_del' in request.form:
+            return render_template('edit_news.html', title='Редактирование работы', form=form, action='confirm_del')
+        elif 'yes' in request.form:
+            if new_obj:
+                db_sess.delete(new_obj)
+                db_sess.commit()
+            else:
+                abort(404)
+            return redirect('/')
+    return render_template('edit_news.html', title='Редактирование работы', form=form, action='')
 
 
 @app.route('/confirm/<confirmation_code>')
@@ -541,48 +558,6 @@ def friend_requests():
         'title': 'Заявки в друзья'
     }
     return render_template('friend_requests.html', **info)
-
-
-@app.route('/edit_news/<int:id>', methods=['GET', 'POST'])
-@login_required
-def news_edit(id):
-    form = EditNewsForm()
-    if request.method == "GET":
-        db_sess = db_session.create_session()
-        new_check = db_sess.query(News).filter(News.id == id).filter(News.author == current_user.id).first()
-        if current_user.email == 'regeneration76@yandex.ru' or current_user.email == 'valerylarionov06@gmail.com':
-            new_check = db_sess.query(News).filter(News.id == id).first()
-
-        if new_check:
-            form.name.data = new_check.name
-            form.text.data = new_check.text
-            form.private.data = new_check.private
-        else:
-            abort(404)
-    if form.validate_on_submit():
-        db_sess = db_session.create_session()
-        new_obj = db_sess.query(News).filter(News.id == id).filter(News.author == current_user.id).first()
-        if current_user.email == 'regeneration76@yandex.ru' or current_user.email == 'valerylarionov06@gmail.com':
-            new_obj = db_sess.query(News).filter(News.id == id).first()
-        if 'edit' in request.form:
-            if new_obj:
-                new_obj.name = form.name.data
-                new_obj.text = form.text.data
-                new_obj.private = form.private.data
-                db_sess.merge(new_obj)
-                db_sess.commit()
-                return redirect('/')
-
-        elif 'confirm_del' in request.form:
-            return render_template('edit_news.html', title='Редактирование работы', form=form, action='confirm_del')
-        elif 'yes' in request.form:
-            if new_obj:
-                db_sess.delete(new_obj)
-                db_sess.commit()
-            else:
-                abort(404)
-            return redirect('/')
-    return render_template('edit_news.html', title='Редактирование работы', form=form, action='')
 
 
 if __name__ == '__main__':
