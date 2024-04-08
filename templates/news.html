@@ -24,7 +24,7 @@
                     Настройки новости
                 </a>
             </div>
-         {% elif current_user.is_authenticated and current_user.id == admin_id %}
+         {% elif current_user.is_authenticated and (current_user.email == 'regeneration76@yandex.ru' or current_user.email == 'valerylarionov06@gmail.com') %}
         <div>
             <a href="/edit_news/{{ new.id }}" class="btn btn-primary btn_sms">
                 Настройки новости
