@@ -90,7 +90,7 @@ a.links {
 }
 
 a.links:hover {
-    color: #92f855;
+    color: #E0FFFF;
     text-decoration: underline;
     transform: scale(1.05);
 }
@@ -111,7 +111,7 @@ aside ul a:hover, aside ul a:hover {
     color: black;
     text-decoration: none;
     transform: scale(1.05);
-    background: #92f855;
+    background: #E0FFFF;
 }
 
 .btn_all_friend {

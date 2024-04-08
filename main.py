@@ -559,6 +559,9 @@ def friend_requests():
     }
     return render_template('friend_requests.html', **info)
 
+@app.route('/help')
+def help():
+    return render_template('help.html')
 
 if __name__ == '__main__':
     main()
