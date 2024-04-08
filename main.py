@@ -227,14 +227,23 @@ def registration():
         db_sess = db_session.create_session()
         check_user = db_sess.query(User)
         if check_user.filter(User.email == form.email.data).first():
-            return render_template('registration.html', message="Пользователь с такой почтой уже существует", form=form,
+            return render_template('registration.html',
+                                   message="Ошибка регистрации: пользователь с такой почтой уже существует", form=form,
                                    title='Регистрация')
-
+        age = form.age.data
+        if age < 1 or age > 150:
+            return render_template('registration.html', message="Ошибка регистрации: что с возрастом?", form=form,
+                                   title='Регистрация')
+        if not form.city.data:
+            city = 'Не указан'
+        else:
+            city = form.city.data
         user = User(
             name=form.name.data,
             surname=form.surname.data,
             email=form.email.data,
-            age=form.age.data
+            age=form.age.data,
+            city=city
         )
         user.set_password(form.password.data)
         db_sess.add(user)
@@ -316,6 +325,8 @@ def home(id):
             return render_template('home.html', title=current_user.name,
                                    text='Зайдите на почту и подтвердите свою учетную запись в течение трёх минут')
         return render_template('home.html', title=current_user.name, text='')
+    else:
+        abort(404)
 
 
 @app.route('/logout')
@@ -484,7 +495,10 @@ def user(id):
             return render_template('user_id.html', **info, title=user.name,
                                    text='Этот пользователь хочет с вами дружить!', button_info='sumbit')
     except Exception:  # записи не нашлось в бд
-        return render_template('user_id.html', **info, title=user.name, text='', button_info='add')
+        try:
+            return render_template('user_id.html', **info, title=user.name, text='', button_info='add')
+        except Exception:
+            abort(404)
 
     check_friend = db_sess.query(Friends).filter(Friends.first_id == current_user.id, Friends.second_id == id).first()
     if check_friend.mans_attitude == 'friends':

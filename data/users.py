@@ -18,6 +18,7 @@ class User(SqlAlchemyBase, UserMixin):
     email = sqlalchemy.Column(sqlalchemy.String, unique=True)
     hashed_password = sqlalchemy.Column(sqlalchemy.String)
     modified_date = sqlalchemy.Column(sqlalchemy.DateTime, default=datetime.datetime.now())
+    city = sqlalchemy.Column(sqlalchemy.String, default='Не указан')
     news_relationship = orm.relationship("News", back_populates="user_relationship")
     confirmed = sqlalchemy.Column(sqlalchemy.Boolean, default=False)
 

@@ -4,7 +4,11 @@
 <form action="" class="login_form">
     {% if current_user.is_authenticated %}
         {% for user in users %}
-            <a href="user/{{ user.id }}" class="links">{{ user.surname }} {{user.name}}</a><br>
+            <a href="user/{{ user.id }}" class="links">{{ user.surname }} {{user.name}}</a>
+            {% if user.confirmed == True %}
+                <img src="{{url_for('static', filename='img/galka.png')}}" style="max-width: 2.14%">
+            {% endif %}
+            <br>
             <hr>
         {% endfor %}
     {% else %}

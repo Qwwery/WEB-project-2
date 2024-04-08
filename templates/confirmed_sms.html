@@ -5,7 +5,7 @@
         <form action="" class="login_form">
             <h4 align="center">{{text}}</h4>
             <a href="/" class="btn btn-primary btn_sms error_confirmed">Главная</a>
-            <a href="/home/{{current_user.name}}" class="btn btn-warning">Домашняя</a>
+            <a href="/home/{{current_user.id}}" class="btn btn-warning">Домашняя</a>
         </form>
     {% else %}
             <a href="/login" class="btn btn-warning">Вход</a>
