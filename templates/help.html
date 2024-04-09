@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <form action="" method="post" class="login_form">
+    <h4>Вам уже ничего не поможет :3</h4>
+    {% if current_user.confirmed == False %}
+        {{text}}
+    {% else %}
+        {{text}}<br>
+    {% endif %}
+</form>
+{% endblock %}
