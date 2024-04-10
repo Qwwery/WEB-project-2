@@ -47,6 +47,8 @@ def page_not_found(e):
 
 
 database = []
+
+
 @app.route('/send', methods=['POST'])
 def send():
     data = request.json
@@ -69,6 +71,24 @@ def send():
     return {'ok': True}
 
 
+@app.route('/sms', methods=['GET', 'POST'])
+def sms():
+    form = SmsForm()
+    if request.method == 'GET':
+        return render_template(template_name_or_list='sms.html', form=form, title='sms')
+    else:
+        if 'btn_submit' in request.form:  # не релизнуто, пока что просто стирает
+            form.text.data = ""
+            print('btn_submit was pressed')
+        elif 'btn_translate_eng' in request.form:
+            form.text.data = make_translate(form.text.data, rus_to_eng)
+            print('btn_translate_eng was pressed')
+        elif 'btn_translate_russ' in request.form:
+            form.text.data = make_translate(form.text.data, eng_to_rus)
+            print('btn_translate_russ was pressed')
+        return render_template(template_name_or_list='sms.html', form=form, title='sms')
+
+
 @app.route(f'/messages', methods=['GET', 'POST'])
 def get_message():
     db_sess = db_session.create_session()
@@ -84,7 +104,8 @@ def get_message():
     except Exception:
         return abort(404)
 
-    messages = db_sess.query(Messages).filter(((Messages.author == author) & (Messages.before == before)) | ((Messages.author == before) & (Messages.before == author))).all()
+    messages = db_sess.query(Messages).filter(((Messages.author == author) & (Messages.before == before)) | (
+            (Messages.author == before) & (Messages.before == author))).all()
 
     if messages is None:
         if friends.mans_attitude == 'friends':
@@ -96,14 +117,49 @@ def get_message():
 
     form = SmsForm()
     if request.method == 'POST' and form.validate_on_submit():
+        print('хуй')
+        print(request.form)
         name = current_user.name
         text = request.form['text']
-        response = requests.post(url="http://127.0.0.1:5000/send", json={"name": name, "text": text})
+        if 'btn_submit' in request.form:
+            response = requests.post(url="http://127.0.0.1:5000/send", json={"name": name, "text": text})
 
-        new_message = Messages(author=author, before=before, js_message=str({"name": name, "text": text}))
-        db_sess.add(new_message)
-        db_sess.commit()
-        return redirect(f'/messages?author={author}&before={before}')
+            if text.strip():
+                new_message = Messages(author=author, before=before, js_message=str({"name": name, "text": text}))
+                db_sess.add(new_message)
+                db_sess.commit()
+            return redirect(f'/messages?author={author}&before={before}')
+
+        elif 'btn_translate_eng' in request.form:
+            form.text.data = make_translate(form.text.data, rus_to_eng)
+            result_message = []
+            for message in messages:
+                result_message.append(ast.literal_eval(message.js_message))
+            print(result_message)
+            info = {
+                'messages': result_message
+            }
+            return render_template('sms.html', **info, form=form)
+        elif 'btn_translate_russ' in request.form:
+            form.text.data = make_translate(form.text.data, eng_to_rus)
+            result_message = []
+            for message in messages:
+                result_message.append(ast.literal_eval(message.js_message))
+            print(result_message)
+            info = {
+                'messages': result_message
+            }
+            return render_template('sms.html', **info, form=form)
+
+        else:
+            name = current_user.name
+            text = request.form['text']
+            response = requests.post(url="http://127.0.0.1:5000/send", json={"name": name, "text": text})
+
+            new_message = Messages(author=author, before=before, js_message=str({"name": name, "text": text}))
+            db_sess.add(new_message)
+            db_sess.commit()
+            return redirect(f'/messages?author={author}&before={before}')
 
     elif request.method == 'GET':
         result_message = []
@@ -170,7 +226,6 @@ def first():
         'news': news,
         'authors': authors
     }
-
 
     return render_template('news.html', **info, title='NaSvyazi', text=text, action='')
 
@@ -351,24 +406,6 @@ def home(id):
 def logout():
     logout_user()
     return redirect("/")
-
-
-@app.route('/sms', methods=['GET', 'POST'])
-def sms():
-    form = SmsForm()
-    if request.method == 'GET':
-        return render_template(template_name_or_list='sms.html', form=form, title='sms')
-    else:
-        if 'btn_submit' in request.form:  # не релизнуто, пока что просто стирает
-            form.text.data = ""
-            print('btn_submit was pressed')
-        elif 'btn_translate_eng' in request.form:
-            form.text.data = make_translate(form.text.data, rus_to_eng)
-            print('btn_translate_eng was pressed')
-        elif 'btn_translate_russ' in request.form:
-            form.text.data = make_translate(form.text.data, eng_to_rus)
-            print('btn_translate_russ was pressed')
-        return render_template(template_name_or_list='sms.html', form=form, title='sms')
 
 
 @app.route('/im', methods=['GET', 'POST'])
@@ -559,9 +596,11 @@ def friend_requests():
     }
     return render_template('friend_requests.html', **info)
 
+
 @app.route('/help')
 def help():
     return render_template('help.html')
+
 
 if __name__ == '__main__':
     main()
