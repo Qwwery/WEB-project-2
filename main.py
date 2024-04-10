@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request, redirect, abort
 from sqlalchemy.orm import Session
 
-from flask_socketio import SocketIO
 import ast
 from time import time
 import requests
