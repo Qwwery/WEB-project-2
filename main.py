@@ -303,13 +303,21 @@ def registration():
         if age < 1 or age > 150:
             return render_template('registration.html', message="Ошибка регистрации: что с возрастом?", form=form,
                                    title='Регистрация')
+        name = form.name.data.strip()
+        if len(name) > 42:
+            return render_template('registration.html', message="Ошибка регистрации: Слишком длинное имя", form=form,
+                                   title='Регистрация')
+        surname = form.surname.data.strip()
+        if len(surname) > 42:
+            return render_template('registration.html', message="Ошибка регистрации: Слишком длинная фамилия", form=form,
+                                   title='Регистрация')
         if not form.city.data:
             city = 'Не указан'
         else:
-            city = form.city.data
+            city = form.city.data.strip()
         user = User(
-            name=form.name.data,
-            surname=form.surname.data,
+            name=name,
+            surname=surname,
             email=form.email.data,
             age=form.age.data,
             city=city
