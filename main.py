@@ -117,8 +117,6 @@ def get_message():
 
     form = SmsForm()
     if request.method == 'POST' and form.validate_on_submit():
-        print('хуй')
-        print(request.form)
         name = current_user.name
         text = request.form['text']
         if 'btn_submit' in request.form:
@@ -145,7 +143,6 @@ def get_message():
             result_message = []
             for message in messages:
                 result_message.append(ast.literal_eval(message.js_message))
-            print(result_message)
             info = {
                 'messages': result_message
             }
