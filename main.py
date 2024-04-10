@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, abort
 from sqlalchemy.orm import Session
 
+from flask_socketio import SocketIO
 import ast
 from time import time
 import requests
@@ -29,6 +30,7 @@ from email.mime.text import MIMEText
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'sdasdgaWFEKjwEKHFNLk;jnFKLJNpj`1`p142QEW:jqwegpoqjergplqwejg;lqeb'
 db_session.global_init("db/db.db")
+socketio = SocketIO(app)
 
 
 def main():
@@ -117,8 +119,6 @@ def get_message():
 
     form = SmsForm()
     if request.method == 'POST' and form.validate_on_submit():
-        print('хуй')
-        print(request.form)
         name = current_user.name
         text = request.form['text']
         if 'btn_submit' in request.form:
@@ -145,7 +145,6 @@ def get_message():
             result_message = []
             for message in messages:
                 result_message.append(ast.literal_eval(message.js_message))
-            print(result_message)
             info = {
                 'messages': result_message
             }
