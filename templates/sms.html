@@ -19,11 +19,11 @@
           -->
     </script>
 </div>
-<form class="sms_login_form center_label" method="post">
+<form class="sms_login_form center_label" method="post" autocomplete="off">
     {{ form.hidden_tag() }}
     <div>
         <p>
-        {{ form.text.label }}<br>
+        {{ form.text.label}}<br>
         {{ form.text(class="form-control message-input") }}
         {% for error in form.text.errors %}
             <p class="alert alert-danger" role="alert">
@@ -44,6 +44,7 @@
 let scroleSms= document.querySelector(".scrole_sms");
 scroleSms.scrollTop = scroleSms.scrollHeight;
 document.querySelector(".message-input").focus()
+
 </script>
 
 {% endblock %}
