@@ -15,9 +15,9 @@
     <hr>
     {% for new in news %}
     {% if (current_user.is_authenticated and new.private == True) or (new.private == False) %}
-        <h3 align="center">{{ new.name }}</h3>
-        <a>{{ new.text }}</a>
-        <p>{{ new.data_str }}</p>
+        <h3 class="transfate">{{ new.name }}</h3>
+        <a class="transfate">{{ new.text }}</a><br><br>
+        <h5>{{ new.data_str }}</h5>
         {% if current_user.is_authenticated and current_user == new.user_relationship %}
             <div>
                 <a href="/edit_news/{{ new.id }}" class="btn btn-primary btn_sms">
