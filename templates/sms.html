@@ -2,6 +2,7 @@
 
 {% block content %}
 <body>
+
 <h1 class="h1_sms"> Чат {{name_chat}}</h1>
 <div class="scrole_sms frame_sms">
     {% for message in messages %}
@@ -12,10 +13,9 @@
 <form class="sms_login_form center_label" method="post">
     {{ form.hidden_tag() }}
     <div>
-
         <p>
         {{ form.text.label }}<br>
-        {{ form.text(class="form-control") }}
+        {{ form.text(class="form-control message-input") }}
         {% for error in form.text.errors %}
             <p class="alert alert-danger" role="alert">
                 {{ error }}
@@ -34,6 +34,7 @@
 <script>
 let scroleSms= document.querySelector(".scrole_sms");
 scroleSms.scrollTop = scroleSms.scrollHeight;
+document.querySelector(".message-input").focus()
 </script>
 
 {% endblock %}
