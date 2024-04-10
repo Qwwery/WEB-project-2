@@ -71,24 +71,6 @@ def send():
     return {'ok': True}
 
 
-@app.route('/sms', methods=['GET', 'POST'])
-def sms():
-    form = SmsForm()
-    if request.method == 'GET':
-        return render_template(template_name_or_list='sms.html', form=form, title='sms')
-    else:
-        if 'btn_submit' in request.form:  # не релизнуто, пока что просто стирает
-            form.text.data = ""
-            print('btn_submit was pressed')
-        elif 'btn_translate_eng' in request.form:
-            form.text.data = make_translate(form.text.data, rus_to_eng)
-            print('btn_translate_eng was pressed')
-        elif 'btn_translate_russ' in request.form:
-            form.text.data = make_translate(form.text.data, eng_to_rus)
-            print('btn_translate_russ was pressed')
-        return render_template(template_name_or_list='sms.html', form=form, title='sms')
-
-
 @app.route(f'/messages', methods=['GET', 'POST'])
 def get_message():
     db_sess = db_session.create_session()
@@ -250,7 +232,13 @@ def news_edit(id):
             new_obj = db_sess.query(News).filter(News.id == id).first()
         if 'edit' in request.form:
             if new_obj:
-                new_obj.name = form.name.data
+                if len(form.name.data.strip()) > 100:
+                    return render_template('edit_news.html', title='Редактирование работы', form=form, action='',
+                                           message=f'Слишком длинное название: {len(form.name.data.strip())} (максимум 100 символов)')
+                if len(form.text.data.strip()) > 1000:
+                    return render_template('edit_news.html', title='Редактирование работы', form=form, action='',
+                                           message=f'Слишком длинное описание {len(form.text.data.strip())} (максимум 1000 символов)')
+                new_obj.name = form.name.data.strip()
                 new_obj.text = form.text.data
                 new_obj.private = form.private.data
                 db_sess.merge(new_obj)
@@ -304,12 +292,13 @@ def registration():
             return render_template('registration.html', message="Ошибка регистрации: что с возрастом?", form=form,
                                    title='Регистрация')
         name = form.name.data.strip()
-        if len(name) > 42:
+        if len(name) > 30:
             return render_template('registration.html', message="Ошибка регистрации: Слишком длинное имя", form=form,
                                    title='Регистрация')
         surname = form.surname.data.strip()
-        if len(surname) > 42:
-            return render_template('registration.html', message="Ошибка регистрации: Слишком длинная фамилия", form=form,
+        if len(surname) > 30:
+            return render_template('registration.html', message="Ошибка регистрации: Слишком длинная фамилия",
+                                   form=form,
                                    title='Регистрация')
         if not form.city.data:
             city = 'Не указан'
@@ -359,7 +348,12 @@ def new_news():
     if form.validate_on_submit():
         db_sess = db_session.create_session()
         user_id = db_sess.query(User).filter(User.email == current_user.email).first().id
-
+        if len(form.name.data.strip()) > 100:
+            return render_template('new_news.html', title='Редактирование работы', form=form, action='',
+                                   message=f'Слишком длинное название: {len(form.name.data.strip())} (максимум 100 символов)')
+        if len(form.text.data.strip()) > 1000:
+            return render_template('new_news.html', title='Редактирование работы', form=form, action='',
+                                   message=f'Слишком длинное описание {len(form.text.data.strip())} (максимум 1000 символов)')
         news = News(
             author=user_id,
             name=form.name.data,
