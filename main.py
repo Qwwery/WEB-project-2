@@ -29,7 +29,6 @@ from email.mime.text import MIMEText
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'sdasdgaWFEKjwEKHFNLk;jnFKLJNpj`1`p142QEW:jqwegpoqjergplqwejg;lqeb'
 db_session.global_init("db/db.db")
-socketio = SocketIO(app)
 
 
 def main():
