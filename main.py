@@ -72,6 +72,16 @@ def send():
     return {'ok': True}
 
 
+@app.route('/all_users')
+@login_required
+def all_users():
+    db_sess = db_session.create_session()
+    users = db_sess.query(User).filter(User.id != current_user.id).all()
+    users = sorted(users, key=lambda x: (x.surname, x.name))
+    print(users)
+    return render_template('all_users.html', users=users)
+
+
 @app.route(f'/messages', methods=['GET', 'POST'])
 def get_message():
     db_sess = db_session.create_session()
@@ -455,7 +465,8 @@ def home(id):
         if 'confirm' in request.form:
             send_email(db_sess)
             return render_template('home.html', title=current_user.name,
-                                   text='Зайдите на почту и подтвердите свою учетную запись в течение трёх минут', news=news)
+                                   text='Зайдите на почту и подтвердите свою учетную запись в течение трёх минут',
+                                   news=news)
         return render_template('home.html', title=current_user.name, text='', news=news)
     else:
         abort(404)

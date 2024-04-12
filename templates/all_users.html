@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+<form class="login_form">
+    <h1 align="center">Пользователи</h1>
+    {% for user in users %}
+        <hr>
+        {% if user.confirmed == False %}
+            <a href="home/{{ user.id }}" class="links">{{ user.surname }} {{ user.name }}</a>
+        {% else %}
+            <h5><a href="home/{{ user.id }}" class="links"> {{ user.surname }} {{ user.name }} <img src="{{url_for('static', filename='img/galka.png')}}" style="max-width: 3.14%"></a></h5>
+        {% endif %}
+        <hr>
+    {% endfor %}
+</form>
+{% endblock %}

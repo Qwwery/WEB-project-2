@@ -2,14 +2,19 @@
 
 {% block content %}
 <form action="" class="login_form" method="post">
+    <h1 align="center">Поиск друзей</h1>
+    <hr>
     <input align="center" type="text" class="form-control" placeholder="Введите имя пользователя, которого вы ищите."
            aria-label="Username" aria-describedby="basic-addon1" id="name" name="search"><br>
     {% for user in users %}
-    <a href="user/{{ user.id }}" class="links">{{ user.surname }} {{user.name}}</a>
+
     {% if user.confirmed == True %}
-        <img src="{{url_for('static', filename='img/galka.png')}}" style="max-width: 2.14%">
+    <h5><a style="color: white" href="user/{{ user.id }}" class="links">{{ user.surname }} {{user.name}}</a>
+        <img src="{{url_for('static', filename='img/galka.png')}}" style="max-width: 3.14%"></h5>
+    {% else %}
+        <a href="user/{{ user.id }}" class="links">{{ user.surname }} {{user.name}}</a>
     {% endif %}
-    <br>
+
     <hr>
     {% endfor %}
 
