@@ -426,6 +426,7 @@ def im():
         return render_template(template_name_or_list='im.html', form=form, title=user.name)
 
 
+@login_required
 @app.route('/search_user', methods=['GET', 'POST'])
 def search_user():
     db_sess = db_session.create_session()
