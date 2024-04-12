@@ -10,8 +10,11 @@
          это ваша домашняя страница!</h4>
     {% endif %}
     {% if current_user.confirmed == False %}
+        <a class="btn btn-primary btn_sms" href="/edit_home/{{ current_user.id }}" style="color: white">Редактировать профиль</a>
+        <button name="confirm" type="submit" class="btn btn-danger btn_sms">Подтвердить учетную запись</button>
         <a href="/logout" class="btn btn-warning">Выйти из аккаунта</a>
-        <button name="confirm" type="submit" class="btn btn-danger btn_sms">Подтвердить учетную запись</button><br>
+
+
         {{text}}
     {% else %}
         <a href="/logout" class="btn btn-warning">Выйти из аккаунта</a><br>

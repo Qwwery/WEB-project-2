@@ -13,6 +13,7 @@ from forms.reg_form import RegForm
 from forms.news_form import NewsForm
 from forms.sms_form import SmsForm
 from forms.edit_news_form import EditNewsForm
+from forms.user_edit import UserEditForm
 from translate import eng_to_rus, rus_to_eng, make_translate
 from data.friends import Friends
 from data.messages import Messages
@@ -212,9 +213,9 @@ def first():
 @app.route('/edit_news/<int:id>', methods=['GET', 'POST'])
 @login_required
 def news_edit(id):
+    db_sess = db_session.create_session()
     form = EditNewsForm()
     if request.method == "GET":
-        db_sess = db_session.create_session()
         new_check = db_sess.query(News).filter(News.id == id).filter(News.author == current_user.id).first()
         if current_user.email == 'regeneration76@yandex.ru' or current_user.email == 'valerylarionov06@gmail.com':
             new_check = db_sess.query(News).filter(News.id == id).first()
@@ -226,7 +227,6 @@ def news_edit(id):
         else:
             abort(404)
     if form.validate_on_submit():
-        db_sess = db_session.create_session()
         new_obj = db_sess.query(News).filter(News.id == id).filter(News.author == current_user.id).first()
         if current_user.email == 'regeneration76@yandex.ru' or current_user.email == 'valerylarionov06@gmail.com':
             new_obj = db_sess.query(News).filter(News.id == id).first()
@@ -255,6 +255,51 @@ def news_edit(id):
                 abort(404)
             return redirect('/')
     return render_template('edit_news.html', title='Редактирование работы', form=form, action='')
+
+
+@app.route('/edit_home/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit_home(id):
+    db_sess = db_session.create_session()
+    if id != current_user.id:
+        abort(404)
+    form = UserEditForm()
+    if request.method == "GET":
+        db_sess = db_session.create_session()
+        user = db_sess.query(User).filter(User.id == current_user.id).first()
+        form.name.data = user.name
+        form.surname.data = user.surname
+        form.city.data = user.city
+        form.age.data = user.age
+    if form.validate_on_submit():
+        age = form.age.data
+        if age < 1 or age > 150:
+            return render_template('user_edit.html', message="Что с возрастом?", form=form,
+                                   title='Редактирование профиля')
+        name = form.name.data.strip()
+        if len(name) > 30:
+            return render_template('user_edit.html', message="Ошибка: Слишком длинное имя", form=form,
+                                   title='Редактирование профиля')
+        surname = form.surname.data.strip()
+        if len(surname) > 30:
+            return render_template('user_edit.html', message="Ошибка: Слишком длинная фамилия",
+                                   form=form,
+                                   title='Редактирование профиля')
+        city = form.city.data.strip()
+        if len(city) > 50:
+            return render_template('user_edit.html', message="Ошибка: Слишком длинный город",
+                                   form=form,
+                                   title='Редактирование профиля')
+
+        user = db_sess.query(User).filter(User.id == current_user.id).first()
+        user.name = name
+        user.surname = surname
+        user.age = age
+        user.city = city
+        db_sess.commit()
+        return redirect(f'/home/{current_user.id}')
+
+    return render_template('user_edit.html', title='Редактирование профиля', form=form, action='')
 
 
 @app.route('/confirm/<confirmation_code>')
@@ -304,6 +349,11 @@ def registration():
             city = 'Не указан'
         else:
             city = form.city.data.strip()
+
+        if len(city) > 50:
+            return render_template('registration.html', message="Ошибка регистрации: Слишком длинный город",
+                                   form=form,
+                                   title='Регистрация')
         user = User(
             name=name,
             surname=surname,

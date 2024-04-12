@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+<form action="" method="post" class="login_form">
+    <h1 align="center">Редактирование профиля</h1>
+    {{ form.csrf_token }}
+    {{ form.hidden_tag() }}
+    <p>
+        {{ form.name.label }}<br>
+        {{ form.name(class="form-control", type="text") }}<br>
+        {% for error in form.name.errors %}
+            <div class="alert alert-danger" role="alert">
+                {{ error }}
+            </div>
+        {% endfor %}
+    </p>
+
+    <p>
+        {{ form.surname.label }}<br>
+        {{ form.surname(class="form-control", type="text") }}<br>
+        {% for error in form.surname.errors %}
+            <div class="alert alert-danger" role="alert">
+                {{ error }}
+            </div>
+        {% endfor %}
+    </p>
+
+    <p>
+        {{ form.age.label }}<br>
+        {{ form.age(class="form-control", type="text") }}<br>
+        {% for error in form.age.errors %}
+            <div class="alert alert-danger" role="alert">
+                {{ error }}
+            </div>
+        {% endfor %}
+    </p>
+
+    <p>
+        {{ form.city.label }}<br>
+        {{ form.city(class="form-control", type="text") }}<br>
+        {% for error in form.city.errors %}
+            <div class="alert alert-danger" role="alert">
+                {{ error }}
+            </div>
+        {% endfor %}
+    </p>
+    <button name="edit" type="submit" class="btn btn-primary btn_sms">Принять изменения</button>
+    <div>{{ message }}</div>
+</form>
+{% endblock %}
