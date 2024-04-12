@@ -127,3 +127,12 @@ aside ul a:hover, aside ul a:hover {
     word-wrap:break-word;
 
 }
+
+.a_news {
+    margin-left: 44.1%;
+  }
+
+.container {
+    display: flex;
+  }
+

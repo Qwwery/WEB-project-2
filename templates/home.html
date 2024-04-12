@@ -12,13 +12,29 @@
     {% if current_user.confirmed == False %}
         <a class="btn btn-primary btn_sms" href="/edit_home/{{ current_user.id }}" style="color: white">Редактировать профиль</a>
         <button name="confirm" type="submit" class="btn btn-danger btn_sms">Подтвердить учетную запись</button>
-        <a href="/logout" class="btn btn-warning">Выйти из аккаунта</a>
-
+        <a href="/logout" class="btn btn-warning">Выйти из аккаунта</a><br>
 
         {{text}}
     {% else %}
-        <a href="/logout" class="btn btn-warning">Выйти из аккаунта</a><br>
+        <a class="btn btn-primary btn_sms" href="/edit_home/{{ current_user.id }}" style="color: white; margin-left: 2.06%;">Редактировать профиль</a>
+        <a href="/logout" class="btn btn-warning" style="margin-left: 37%;">Выйти из аккаунта  </a><br>
         {{text}}<br>
     {% endif %}
+    <hr>
+    <h4 align="center">Здесь будут ваши новости</h4>
+    <hr>
+    {% for elem in news %}
+
+
+        <h3 class="transfate" align="center">{{ elem.name }}</h3>
+        <i class="transfate">{{ elem.text }}</i><br><br>
+
+        <div class="container">
+          <p style="color:white">{{ elem.data_str }}</p>
+          <a href="/edit_news/{{ elem.id }}" class="btn btn-primary btn_sms a_news">Настройки новости</a>
+        </div>
+        <hr>
+    {% endfor %}
+
 </form>
 {% endblock %}

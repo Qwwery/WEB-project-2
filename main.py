@@ -422,6 +422,21 @@ def new_news():
     return render_template('new_news.html', form=form, title='Новая новость')
 
 
+def send_email(db_sess):
+    user = db_sess.query(User).filter(User.email == current_user.email).first()
+    confirmation_code = serializer.dumps(user.id, salt='confirm-salt')
+    confirm_url = f'{request.host}/confirm/{confirmation_code}'
+    msg = MIMEText(f'''Please confirm your account by clicking the link below: {confirm_url}''', 'html')
+    msg['Subject'] = 'Account Confirmation Required'
+    msg['From'] = 'valerylarionov06@gmail.com'
+    msg['To'] = user.email
+
+    with smtplib.SMTP('smtp.gmail.com', 587) as server:
+        server.starttls()
+        server.login('valerylarionov06@gmail.com', 'hafg vjqg nywe khnu')
+        server.sendmail('valerylarionov06@gmail.com', [user.email], msg.as_string())
+
+
 @app.route('/home/<int:id>', methods=['GET', 'POST'])
 def home(id):
     try:
@@ -429,23 +444,15 @@ def home(id):
     except Exception:
         abort(404)
     if id_user == id:
+        db_sess = db_session.create_session()
+        news = db_sess.query(News).filter(News.author == current_user.id).all()
+        news = news[::-1]
+        print(news)
         if 'confirm' in request.form:
-            db_sess = db_session.create_session()
-            user = db_sess.query(User).filter(User.email == current_user.email).first()
-            confirmation_code = serializer.dumps(user.id, salt='confirm-salt')
-            confirm_url = f'{request.host}/confirm/{confirmation_code}'
-            msg = MIMEText(f'''Please confirm your account by clicking the link below: {confirm_url}''', 'html')
-            msg['Subject'] = 'Account Confirmation Required'
-            msg['From'] = 'valerylarionov06@gmail.com'
-            msg['To'] = user.email
-
-            with smtplib.SMTP('smtp.gmail.com', 587) as server:
-                server.starttls()
-                server.login('valerylarionov06@gmail.com', 'hafg vjqg nywe khnu')
-                server.sendmail('valerylarionov06@gmail.com', [user.email], msg.as_string())
+            send_email(db_sess)
             return render_template('home.html', title=current_user.name,
-                                   text='Зайдите на почту и подтвердите свою учетную запись в течение трёх минут')
-        return render_template('home.html', title=current_user.name, text='')
+                                   text='Зайдите на почту и подтвердите свою учетную запись в течение трёх минут', news=news)
+        return render_template('home.html', title=current_user.name, text='', news=news)
     else:
         abort(404)
 
