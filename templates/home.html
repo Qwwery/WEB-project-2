@@ -14,11 +14,11 @@
         <button name="confirm" type="submit" class="btn btn-danger btn_sms">Подтвердить учетную запись</button>
         <a href="/logout" class="btn btn-warning">Выйти из аккаунта</a><br>
 
-        {{text}}
+        {{text}}<br>
     {% else %}
         <a class="btn btn-primary btn_sms" href="/edit_home/{{ current_user.id }}" style="color: white; margin-left: 2.06%;">Редактировать профиль</a>
         <a href="/logout" class="btn btn-warning" style="margin-left: 37%;">Выйти из аккаунта  </a><br>
-        {{text}}<br>
+        {{text}}
     {% endif %}
     <hr>
     <h4 align="center">Здесь будут ваши новости</h4>

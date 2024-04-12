@@ -196,15 +196,19 @@ def first():
     news = news[::-1]
 
     authors = []
+    confirmed_check = []
     for new in news:
         name = db_sess.query(User).filter(User.id == new.author).first().name
         surname = db_sess.query(User).filter(User.id == new.author).first().surname
+        confirm = db_sess.query(User).filter(User.id == new.author).first().confirmed
+        confirmed_check.append(confirm)
         authors.append(f"{surname} {name}")
         # new.data = get_str_time(new.data)
         new.date = datetime.datetime.now()
     info = {
         'news': news,
-        'authors': authors
+        'authors': authors,
+        'confirm_check': confirmed_check
     }
 
     return render_template('news.html', **info, title='NaSvyazi', text=text, action='')

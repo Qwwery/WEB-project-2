@@ -31,11 +31,22 @@
             </a>
         </div>
         {% endif %}
+
     {% if current_user.is_authenticated %}
         {% if current_user.id == new.author %}
-            <p align="right"><a href="home/{{ new.author }}" class="links transfate">{{ authors[loop.index - 1] }}</a></p>
+            {% if confirm_check[loop.index - 1] == False %}
+                <p align="right"><a href="home/{{ new.author }}" class="links transfate">{{ authors[loop.index - 1] }}</a></p>
+            {% else %}
+                <p align="right"><a href="home/{{ new.author }}" class="links transfate">{{ authors[loop.index - 1] }}</a>
+                <img src="{{url_for('static', filename='img/galka.png')}}" style="max-width: 3.14%"></p>
+            {% endif %}
         {% else %}
-            <p align="right"><a href="user/{{ new.author }}" class="links transfate">{{ authors[loop.index - 1] }}</a></p>
+            {% if confirm_check[loop.index - 1] == False %}
+                <p align="right"><a href="user/{{ new.author }}" class="links transfate">{{ authors[loop.index - 1] }}</a></p>
+            {% else %}
+                <p align="right"><a href="user/{{ new.author }}" class="links transfate">{{ authors[loop.index - 1] }}</a>
+                <img src="{{url_for('static', filename='img/galka.png')}}" style="max-width: 3.14%"></p>
+            {% endif %}
         {% endif %}
     {% else %}
         <p align="right">{{ authors[loop.index - 1] }}</p>
