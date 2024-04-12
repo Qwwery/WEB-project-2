@@ -3,16 +3,16 @@
 {% block content %}
 <form action="" method="post" class="login_form">
     {% if current_user.confirmed == False %}
-        <h4>Привет, {{ current_user.name }}! это ваша домашняя страница!</h4>
+        <h4 align="center">Привет, {{ current_user.name }}! это ваша домашняя страница!</h4>
     {% else %}
-        <h4>Привет, {{ current_user.name }}!
+        <h4 >Привет, {{ current_user.name }}!
             <img src="{{url_for('static', filename='img/galka.png')}}" style="max-width: 3.14%">
          это ваша домашняя страница!</h4>
     {% endif %}
     {% if current_user.confirmed == False %}
-        <a class="btn btn-primary btn_sms" href="/edit_home/{{ current_user.id }}" style="color: white">Редактировать профиль</a>
-        <button name="confirm" type="submit" class="btn btn-danger btn_sms">Подтвердить учетную запись</button>
-        <a href="/logout" class="btn btn-warning">Выйти из аккаунта</a><br>
+        <a class="btn btn-primary btn_sms" href="/edit_home/{{ current_user.id }}" style="color: white; margin-left: 1%">Редактировать профиль</a>
+        <button name="confirm" type="submit" class="btn btn-danger btn_sms" style="margin-left: 5%">Подтвердить учетную запись</button>
+        <a href="/logout" class="btn btn-warning" style="margin-left: 5%">Выйти из аккаунта</a><br>
 
         {{text}}<br>
     {% else %}
