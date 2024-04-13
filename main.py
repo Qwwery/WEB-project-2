@@ -28,7 +28,7 @@ import smtplib
 from email.mime.text import MIMEText
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'sdasdgaWFEKjwEKHFNLk;jnFKLJNpj`1`p142QEW:jqwegpoqjergplqwejg;lqeb'
+app.config['SECRET_KEY'] = 'ebsdFKLJNpj`1`p142QEW:jqwegpoqjergplqwejg;asdgaWFEKjwEKHFNLk;jnlqeb'
 db_session.global_init("db/db.db")
 
 
