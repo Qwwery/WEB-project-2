@@ -72,14 +72,17 @@ def send():
     return {'ok': True}
 
 
-@app.route('/all_users')
+@app.route('/all_users', methods=['GET', 'POST'])
 @login_required
 def all_users():
     db_sess = db_session.create_session()
     users = db_sess.query(User).filter(User.id != current_user.id).all()
     users = sorted(users, key=lambda x: (x.surname, x.name))
+    if request.method == 'POST' and 'search' in request.form and len(request.form['search'].strip()) > 0:
+        users = list(filter(lambda x: request.form['search'].lower() in x.name.lower(), users))
+        return render_template('all_users.html', users=users, action='btn')
     print(users)
-    return render_template('all_users.html', users=users)
+    return render_template('all_users.html', users=users, action='')
 
 
 @app.route(f'/messages', methods=['GET', 'POST'])
