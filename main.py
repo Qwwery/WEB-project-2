@@ -20,6 +20,7 @@ from data.messages import Messages
 from time_news import get_str_time  # deleted
 import datetime
 import git
+from api import get_ip
 import json
 import pytz
 import logging
@@ -371,12 +372,14 @@ def registration():
             return render_template('registration.html', message="Ошибка регистрации: Слишком длинный город",
                                    form=form,
                                    title='Регистрация')
+        ip = get_ip()
         user = User(
             name=name,
             surname=surname,
             email=form.email.data,
             age=form.age.data,
-            city=city
+            city=city,
+            ip=ip
         )
         user.set_password(form.password.data)
         db_sess.add(user)
