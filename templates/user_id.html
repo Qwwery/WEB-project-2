@@ -2,11 +2,19 @@
 
 {% block content %}
 <form action="" class="login_form" method="post">
-    <h1>Пользователь {{ user.surname }} {{ user.name }}
-    {% if user.confirmed == True %}
-            <img src="{{url_for('static', filename='img/galka.png')}}" style="max-width: 3.74%">
+        {% if user.confirmed == True %}
+            <h1>Пользователь {{ user.surname }} {{ user.name }}<img src="{{url_for('static', filename='img/galka.png')}}" style="max-width: 3.74%"></h1>
+            <p>Возраст: {{user.age}}</p><hr>
+            <p>Город: {{user.city}}</p><hr>
+        {% else %}
+            <h1>Пользователь {{ user.surname }} {{ user.name }}</h1><hr>
+            <p>Возраст: {{user.age}}</p><hr>
+            <p>Город: {{user.city}}</p><hr>
+            {% if user.ip != 'error' %}
+                <p>Ip адрес при регистрации: {{user.ip}}</p><hr>
             {% endif %}
-    </h1>
+        {% endif %}
+
     <div>
         {% if current_user.is_authenticated %}
             {% if button_info == 'sumbit' %}
