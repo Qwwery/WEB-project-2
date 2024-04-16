@@ -21,12 +21,12 @@
         {{text}}
     {% endif %}
     <hr>
+
     <h4 align="center">Ваши новости</h4>
     <hr>
     {% for elem in news %}
 
-
-        <h3 class="transfate" align="center">{{ elem.name }}</h3>
+        <h5 class="transfate" align="center">{{ elem.name }}</h5>
         <i class="transfate">{{ elem.text }}</i><br><br>
 
         <div class="container">
@@ -36,5 +36,9 @@
         <hr>
     {% endfor %}
 
+    <h4 align="center">Данные аккаунта</h4>
+    <p>Возраст: {{current_user.age}}</p>
+    <p>Город: {{current_user.city}}</p>
+    <p>Ip адрес при регистрации: {{current_user.ip}}</p><hr>
 </form>
 {% endblock %}

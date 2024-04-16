@@ -308,7 +308,8 @@ def edit_home(id):
             return render_template('user_edit.html', message="Ошибка: Слишком длинный город",
                                    form=form,
                                    title='Редактирование профиля')
-
+        if not city.strip():
+            city = 'Не указан'
         user = db_sess.query(User).filter(User.id == current_user.id).first()
         user.name = name
         user.surname = surname

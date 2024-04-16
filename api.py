@@ -6,4 +6,4 @@ def get_ip():
         return requests.get('https://api.ipify.org/?format=json%27').text
     except Exception as e:
         print(e)
-        return 'error'
+        return 'не удалось пробить'

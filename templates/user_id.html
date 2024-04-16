@@ -10,7 +10,7 @@
             <h1>Пользователь {{ user.surname }} {{ user.name }}</h1><hr>
             <p>Возраст: {{user.age}}</p><hr>
             <p>Город: {{user.city}}</p><hr>
-            {% if user.ip != 'error' %}
+            {% if user.ip != 'не удалось пробить' %}
                 <p>Ip адрес при регистрации: {{user.ip}}</p><hr>
             {% endif %}
         {% endif %}
