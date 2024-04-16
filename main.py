@@ -289,6 +289,10 @@ def edit_home(id):
         form.surname.data = user.surname
         form.city.data = user.city
         form.age.data = user.age
+        form.ip_see.data = user.ip_see
+
+        print(form.ip_see.data)
+
     if form.validate_on_submit():
         age = form.age.data
         if age < 1 or age > 150:
@@ -310,12 +314,17 @@ def edit_home(id):
                                    title='Редактирование профиля')
         if not city.strip():
             city = 'Не указан'
+
+        see = form.ip_see.data
+        print(see)
         user = db_sess.query(User).filter(User.id == current_user.id).first()
         user.name = name
         user.surname = surname
         user.age = age
         user.city = city
+        user.ip_see = see
         db_sess.commit()
+
         return redirect(f'/home/{current_user.id}')
 
     return render_template('user_edit.html', title='Редактирование профиля', form=form, action='')

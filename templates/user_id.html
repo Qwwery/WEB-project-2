@@ -6,6 +6,11 @@
             <h1>Пользователь {{ user.surname }} {{ user.name }}<img src="{{url_for('static', filename='img/galka.png')}}" style="max-width: 3.74%"></h1>
             <p>Возраст: {{user.age}}</p><hr>
             <p>Город: {{user.city}}</p><hr>
+            {% if user.ip_see == True %}
+                <p>Ip адрес при регистрации: {{user.ip}}</p><hr>
+            {% else %}
+                <p>Пользователь скрыл свой ip адрес</p>
+            {% endif %}
         {% else %}
             <h1>Пользователь {{ user.surname }} {{ user.name }}</h1><hr>
             <p>Возраст: {{user.age}}</p><hr>
