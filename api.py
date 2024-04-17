@@ -13,6 +13,3 @@ def get_ip():
             return local_ip
         except socket.gaierror as e:
             return 'Хорошо шифруется'
-
-
-get_ip()
