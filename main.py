@@ -20,7 +20,7 @@ from data.messages import Messages
 from time_news import get_str_time  # deleted
 import datetime
 import git
-from api import get_ip
+from api import get_setup
 import json
 import pytz
 import logging
@@ -43,9 +43,9 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 
 
-@app.errorhandler(404)
-def page_not_found(e):
-    return render_template('404.html')
+# @app.errorhandler(404)
+# def page_not_found(e):
+#     return render_template('404.html')
 
 
 database = []
@@ -289,9 +289,7 @@ def edit_home(id):
         form.surname.data = user.surname
         form.city.data = user.city
         form.age.data = user.age
-        form.ip_see.data = user.ip_see
-
-        print(form.ip_see.data)
+        form.setup_see.data = user.setup_see
 
     if form.validate_on_submit():
         age = form.age.data
@@ -315,14 +313,13 @@ def edit_home(id):
         if not city.strip():
             city = 'Не указан'
 
-        see = form.ip_see.data
-        print(see)
+        setup_see = form.setup_see.data
         user = db_sess.query(User).filter(User.id == current_user.id).first()
         user.name = name
         user.surname = surname
         user.age = age
         user.city = city
-        user.ip_see = see
+        user.setup_see = setup_see
         db_sess.commit()
 
         return redirect(f'/home/{current_user.id}')
@@ -382,14 +379,14 @@ def registration():
             return render_template('registration.html', message="Ошибка регистрации: Слишком длинный город",
                                    form=form,
                                    title='Регистрация')
-        ip = get_ip()
+        setup = get_setup()
         user = User(
             name=name,
             surname=surname,
             email=form.email.data,
             age=form.age.data,
             city=city,
-            ip=ip
+            setup=setup
         )
         user.set_password(form.password.data)
         db_sess.add(user)

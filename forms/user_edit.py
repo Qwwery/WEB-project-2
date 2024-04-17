@@ -9,4 +9,4 @@ class UserEditForm(FlaskForm):
     surname = StringField('*Фамилия', validators=[DataRequired()])
     age = IntegerField('*Возраст')
     city = StringField('Город')
-    ip_see = BooleanField('Отображать ip во время регистрации', default=False)
+    setup_see = BooleanField('Отображать шутку', default=False)

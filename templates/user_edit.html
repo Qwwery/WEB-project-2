@@ -46,7 +46,7 @@
     </p>
 
     {% if current_user.is_authenticated and current_user.confirmed %}
-        <p>{{ form.ip_see() }} {{ form.ip_see.label }}</p>
+        <p>{{ form.setup_see() }} {{ form.setup_see.label }}</p>
     {% endif %}
     <button name="edit" type="submit" class="btn btn-primary btn_sms">Принять изменения</button>
     <div>{{ message }}</div>

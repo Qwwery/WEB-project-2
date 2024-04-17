@@ -21,8 +21,8 @@ class User(SqlAlchemyBase, UserMixin):
     city = sqlalchemy.Column(sqlalchemy.String, default='Не указан')
     news_relationship = orm.relationship("News", back_populates="user_relationship")
     confirmed = sqlalchemy.Column(sqlalchemy.Boolean, default=False)
-    ip = sqlalchemy.Column(sqlalchemy.String)
-    ip_see = sqlalchemy.Column(sqlalchemy.Boolean, default=True)
+    setup = sqlalchemy.Column(sqlalchemy.String)
+    setup_see = sqlalchemy.Column(sqlalchemy.Boolean, default=True)
 
     def __repr__(self):
         return f"<User> id:{self.id}, surname:{self.surname}, name:{self.name}"
