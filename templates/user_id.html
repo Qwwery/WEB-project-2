@@ -6,7 +6,7 @@
             <h1>Пользователь {{ user.surname }} {{ user.name }}<img src="{{url_for('static', filename='img/galka.png')}}" style="max-width: 3.74%"></h1>
             <p>Возраст: {{user.age}}</p><hr>
             <p>Город: {{user.city}}</p><hr>
-            <p>Статус подтверждения: Алла Михайловна</p>
+            <p>Статус подтверждения: Cool user</p>
             {% if user.setup_see == True %}
                 <p>Шутка за 300: {{user.setup}}</p><hr>
             {% else %}
