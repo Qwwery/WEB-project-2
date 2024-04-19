@@ -1,0 +1,24 @@
+from string import ascii_uppercase, ascii_letters, digits
+
+
+def check_simvols(password):
+    check_string = set(ascii_uppercase) | set(ascii_letters) | set(digits)
+    for simvol in password:
+        if simvol not in check_string:
+            return False
+    return True
+
+
+def check_correct_password(password):
+    if not (8 <= len(password) <= 16):
+        return False, 'длина пароля от 8 до 16 символов'
+    if len(set(password) & (set(digits))) == 0:
+        return False, 'пароль должен содержать хотя бы одну цифру'
+    if len(set(password) & set(ascii_letters)) == 0:
+        return False, 'пароль должен содержать хотя бы одну строчную латинскую букву'
+    if len(set(password) & set(ascii_uppercase)) == 0:
+        return False, 'пароль должен содержать хотя бы одну заглавную латинскую букву'
+    if check_simvols(password):
+        return True, 'успех'
+    else:
+        return False, 'пароль должен содержать только латинские буквы и цифры'
