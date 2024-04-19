@@ -1,7 +1,7 @@
 <h1 align='center'>
     Мотота лох 
     <br> 
-    pip freeze > requirements.txt - записать в requirements.txt
+    pip freeze > requirements.txt - записать
     <br>
-    pip install -r requirements.txt - скачать с requirements.txt
+    pip install -r requirements.txt - скачать
 </h1>
