@@ -30,7 +30,7 @@ import smtplib
 from email.mime.text import MIMEText
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'ebsd`1`p142QEW:jFKLJNpjqwffffffqwejg;asdgaWFEKjwEKHFNLk;jnlqeb'
+app.config['SECRET_KEY'] = 'ebfqwejg;asdgsd`1`p142QEW:jFKLJNpjqwfffffaWFEKjwEKHFNLk;fwjnlqeb'
 db_session.global_init("db/db.db")
 
 
@@ -251,11 +251,16 @@ def news_edit(id):
         if 'edit' in request.form:
             if new_obj:
                 if len(form.name.data.strip()) > 100:
-                    return render_template('edit_news.html', title='Редактирование работы', form=form, action='',
-                                           message=f'Слишком длинное название: {len(form.name.data.strip())} (максимум 100 символов)')
+                    return render_template('edit_news.html', title='Редактирование работы',
+                                           form=form, action='',
+                                           message=f'Слишком длинное название: {len(form.name.data.strip())} '
+                                                   f'(максимум 100 символов)')
+
                 if len(form.text.data.strip()) > 1000:
-                    return render_template('edit_news.html', title='Редактирование работы', form=form, action='',
-                                           message=f'Слишком длинное описание {len(form.text.data.strip())} (максимум 1000 символов)')
+                    return render_template('edit_news.html', title='Редактирование работы',
+                                           form=form, action='',
+                                           message=f'Слишком длинное описание {len(form.text.data.strip())} '
+                                                   f'(максимум 1000 символов)')
                 new_obj.name = form.name.data.strip()
                 new_obj.text = form.text.data
                 new_obj.private = form.private.data
@@ -264,7 +269,9 @@ def news_edit(id):
                 return redirect('/')
 
         elif 'confirm_del' in request.form:
-            return render_template('edit_news.html', title='Редактирование работы', form=form, action='confirm_del')
+            return render_template('edit_news.html', title='Редактирование работы', form=form,
+                                   action='confirm_del')
+
         elif 'yes' in request.form:
             if new_obj:
                 db_sess.delete(new_obj)
@@ -710,7 +717,7 @@ def friend_requests():
 
 
 @app.route('/help')
-def help():
+def help_handler():
     return render_template('help.html')
 
 
