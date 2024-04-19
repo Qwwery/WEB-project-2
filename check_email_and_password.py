@@ -1,4 +1,5 @@
 from string import ascii_uppercase, ascii_letters, digits
+from email_validator import validate_email
 
 
 def check_simvols(password):
@@ -22,3 +23,11 @@ def check_correct_password(password):
         return True, 'успех'
     else:
         return False, 'пароль должен содержать только латинские буквы и цифры'
+
+
+def check_correct_email(email):
+    try:
+        result = validate_email(email)
+        return True, 'да'
+    except Exception as e:
+        return False, e
