@@ -19,6 +19,7 @@ from data.friends import Friends
 from data.messages import Messages
 from time_news import get_str_time  # deleted
 import datetime
+from check_email_and_password import check_correct_email, check_correct_password
 import git
 from api import get_setup
 import json
@@ -43,9 +44,9 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 
 
-# @app.errorhandler(404)
-# def page_not_found(e):
-#     return render_template('404.html')
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html')
 
 
 database = []
@@ -82,7 +83,6 @@ def all_users():
     if request.method == 'POST' and 'search' in request.form and len(request.form['search'].strip()) > 0:
         users = list(filter(lambda x: request.form['search'].lower() in x.name.lower(), users))
         return render_template('all_users.html', users=users, action='btn')
-    print(users)
     return render_template('all_users.html', users=users, action='')
 
 
@@ -359,26 +359,41 @@ def registration():
                                    title='Регистрация')
         age = form.age.data
         if age < 1 or age > 150:
-            return render_template('registration.html', message="Ошибка регистрации: что с возрастом?", form=form,
-                                   title='Регистрация')
+            return render_template('registration.html', message="Ошибка регистрации: что с возрастом?",
+                                   form=form, title='Регистрация')
+
         name = form.name.data.strip()
         if len(name) > 30:
-            return render_template('registration.html', message="Ошибка регистрации: Слишком длинное имя", form=form,
+            return render_template('registration.html',
+                                   message="Ошибка регистрации: Слишком длинное имя", form=form,
                                    title='Регистрация')
+
         surname = form.surname.data.strip()
         if len(surname) > 30:
-            return render_template('registration.html', message="Ошибка регистрации: Слишком длинная фамилия",
-                                   form=form,
+            return render_template('registration.html',
+                                   message="Ошибка регистрации: Слишком длинная фамилия", form=form,
                                    title='Регистрация')
+
         if not form.city.data:
             city = 'Не указан'
         else:
             city = form.city.data.strip()
 
         if len(city) > 50:
-            return render_template('registration.html', message="Ошибка регистрации: Слишком длинный город",
+            return render_template('registration.html',
+                                   message="Ошибка регистрации: Слишком длинный город", form=form,
+                                   title='Регистрация')
+
+        if not check_correct_email(form.email.data)[0]:
+            return render_template('registration.html', message="Ошибка регистрации: плохая почта",
                                    form=form,
                                    title='Регистрация')
+
+        check_password = check_correct_password(form.password.data)
+        if not check_password[0]:
+            return render_template('registration.html', message=f"Ошибка регистрации: "
+                                                                f"{check_password[1]}", form=form, title='Регистрация')
+
         setup = get_setup()
         user = User(
             name=name,
@@ -426,11 +441,16 @@ def new_news():
         db_sess = db_session.create_session()
         user_id = db_sess.query(User).filter(User.email == current_user.email).first().id
         if len(form.name.data.strip()) > 100:
-            return render_template('new_news.html', title='Редактирование работы', form=form, action='',
-                                   message=f'Слишком длинное название: {len(form.name.data.strip())} (максимум 100 символов)')
+            return render_template('new_news.html', title='Редактирование работы',
+                                   form=form, action='',
+                                   message=f'Слишком длинное название: {len(form.name.data.strip())} '
+                                           f'(максимум 100 символов)')
+
         if len(form.text.data.strip()) > 1000:
-            return render_template('new_news.html', title='Редактирование работы', form=form, action='',
-                                   message=f'Слишком длинное описание {len(form.text.data.strip())} (максимум 1000 символов)')
+            return render_template('new_news.html', title='Редактирование работы',
+                                   form=form, action='',
+                                   message=f'Слишком длинное описание {len(form.text.data.strip())} '
+                                           f'(максимум 1000 символов)')
         news = News(
             author=user_id,
             name=form.name.data,
@@ -474,7 +494,6 @@ def home(id):
         db_sess = db_session.create_session()
         news = db_sess.query(News).filter(News.author == current_user.id).all()
         news = news[::-1]
-        print(news)
         if 'confirm' in request.form:
             send_email(db_sess)
             return render_template('home.html', title=current_user.name,
@@ -557,8 +576,9 @@ def user(id):
 
             check_blocked = db_sess.query(Friends).filter(Friends.first_id == id,
                                                           Friends.second_id == current_user.id).first()
-            if check_blocked and check_blocked.mans_attitude == 'ban':  # перед оправкой дружбы проверяем, не заблокирован ли отправитель
-                return render_template('user_id.html', **info, title=user.name, text='Пользователь вас заблокировал')
+            if check_blocked and check_blocked.mans_attitude == 'ban':
+                return render_template('user_id.html', **info, title=user.name,
+                                       text='Пользователь вас заблокировал')
 
             check_friend = db_sess.query(Friends).filter(Friends.first_id == current_user.id,
                                                          Friends.second_id == id).first()
@@ -578,11 +598,12 @@ def user(id):
                 db_sess.add(first_zapic)
 
                 db_sess.commit()
-                return render_template('user_id.html', **info, title=user.name, text='Запрос был отправлен',
+                return render_template('user_id.html', **info, title=user.name,
+                                       text='Запрос был отправлен',
                                        button_info='sent')
 
             else:
-                if check_friend.mans_attitude == 'ban':  # пользователь заблокирован текущим пользователем, отправить никак
+                if check_friend.mans_attitude == 'ban':
                     return render_template('user_id.html', **info, title=user.name,
                                            text='Вы не можете отправить запрос этому пользователю.', button_info='add')
 
@@ -592,6 +613,7 @@ def user(id):
                 elif check_friend.mans_attitude == 'received':
                     return render_template('user_id.html', **info, title=user.name,
                                            text='Этот пользователь хочет с вами дружить!', button_info='add')
+
         elif 'sumbit' in request.form:
             check_friend = db_sess.query(Friends).filter(Friends.first_id == current_user.id,
                                                          Friends.second_id == id).first()
@@ -601,8 +623,11 @@ def user(id):
             check_friend_2.mans_attitude = 'friends'
             db_sess.commit()
             return redirect('/')
+
         elif 'delete' in request.form:
-            return render_template('user_id.html', **info, title=user.name, button_info='dialog', name=user.name)
+            return render_template('user_id.html', **info, title=user.name, button_info='dialog',
+                                   name=user.name)
+
         elif 'yes' in request.form:
             first = db_sess.query(Friends).filter(Friends.first_id == id, Friends.second_id == current_user.id).first()
             second = db_sess.query(Friends).filter(Friends.first_id == current_user.id, Friends.second_id == id).first()
@@ -617,8 +642,10 @@ def user(id):
             db_sess.delete(first)
             db_sess.delete(second)
             db_sess.commit()
-            return render_template('user_id.html', **info, title=user.name, text='Предложение отклонено',
+            return render_template('user_id.html', **info, title=user.name,
+                                   text='Предложение отклонено',
                                    button_info='add')
+
         elif 'cancel_request' in request.form:
             first = db_sess.query(Friends).filter(Friends.first_id == id, Friends.second_id == current_user.id).first()
             second = db_sess.query(Friends).filter(Friends.first_id == current_user.id, Friends.second_id == id).first()

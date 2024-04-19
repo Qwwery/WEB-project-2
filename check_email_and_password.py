@@ -3,7 +3,9 @@ from email_validator import validate_email
 
 
 def check_simvols(password):
-    check_string = set(ascii_uppercase) | set(ascii_letters) | set(digits)
+    s = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', '-', '=',
+         '{', '}', '|', ':', ';', '"', '<', '>', '.', '?', '/', "'"]
+    check_string = set(ascii_uppercase) | set(ascii_letters) | set(digits) | set(s)
     for simvol in password:
         if simvol not in check_string:
             return False
@@ -22,7 +24,9 @@ def check_correct_password(password):
     if check_simvols(password):
         return True, 'успех'
     else:
-        return False, 'пароль должен содержать только латинские буквы и цифры'
+        s = ' '.join(['!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', '-', '=',
+                      '{', '}', '|', ':', ';', '"', '<', '>', '.', '?', '/', "'"])
+        return False, f'пароль должен содержать только латинские буквы и цифры или специальные символы {s}'
 
 
 def check_correct_email(email):
