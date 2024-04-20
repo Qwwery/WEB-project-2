@@ -30,7 +30,7 @@ import smtplib
 from email.mime.text import MIMEText
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'ebfqwejg;asdgsd`1`p1LJNpjqwfffffaWFEKjwEKHFNLk;fwfjnl42QEW:jFKqeb'
+app.config['SECRET_KEY'] = 'ebfqwejg;asdgsd`1`p1LJNpjqwfffaffaWFEKjwEKHFNLk;fwfjnl42QEW:jFKqeb'
 db_session.global_init("db/db.db")
 
 
@@ -587,7 +587,8 @@ def im():
     id_chat = request.args.get('ch')
 
     db_sess = db_session.create_session()
-    is_friends = db_sess.query(Friends).filter(Friends.first_id == current_user.id, Friends.second_id == id_user).all()
+    is_friends = db_sess.query(Friends).filter(Friends.first_id == current_user.id,
+                                               Friends.second_id == id_user).all()
     if is_friends:
         user = db_sess.query(User).filter(User.id == id_user).first()
     else:
@@ -698,16 +699,20 @@ def user(id):
                                    name=user.name)
 
         elif 'yes' in request.form:
-            first = db_sess.query(Friends).filter(Friends.first_id == id, Friends.second_id == current_user.id).first()
-            second = db_sess.query(Friends).filter(Friends.first_id == current_user.id, Friends.second_id == id).first()
+            first = db_sess.query(Friends).filter(Friends.first_id == id,
+                                                  Friends.second_id == current_user.id).first()
+            second = db_sess.query(Friends).filter(Friends.first_id == current_user.id,
+                                                   Friends.second_id == id).first()
             db_sess.delete(first)
             db_sess.delete(second)
             db_sess.commit()
             return render_template('user_id.html', **info, title=user.name,
                                    text=f'Пользователь {user.name} был удален из ваших друзей', button_info='add')
         elif 'cancel_friend' in request.form:
-            first = db_sess.query(Friends).filter(Friends.first_id == id, Friends.second_id == current_user.id).first()
-            second = db_sess.query(Friends).filter(Friends.first_id == current_user.id, Friends.second_id == id).first()
+            first = db_sess.query(Friends).filter(Friends.first_id == id,
+                                                  Friends.second_id == current_user.id).first()
+            second = db_sess.query(Friends).filter(Friends.first_id == current_user.id,
+                                                   Friends.second_id == id).first()
             db_sess.delete(first)
             db_sess.delete(second)
             db_sess.commit()
@@ -716,8 +721,10 @@ def user(id):
                                    button_info='add')
 
         elif 'cancel_request' in request.form:
-            first = db_sess.query(Friends).filter(Friends.first_id == id, Friends.second_id == current_user.id).first()
-            second = db_sess.query(Friends).filter(Friends.first_id == current_user.id, Friends.second_id == id).first()
+            first = db_sess.query(Friends).filter(Friends.first_id == id,
+                                                  Friends.second_id == current_user.id).first()
+            second = db_sess.query(Friends).filter(Friends.first_id == current_user.id,
+                                                   Friends.second_id == id).first()
             db_sess.delete(first)
             db_sess.delete(second)
             db_sess.commit()
@@ -735,7 +742,8 @@ def user(id):
         except Exception:
             abort(404)
 
-    check_friend = db_sess.query(Friends).filter(Friends.first_id == current_user.id, Friends.second_id == id).first()
+    check_friend = db_sess.query(Friends).filter(Friends.first_id == current_user.id,
+                                                 Friends.second_id == id).first()
     if check_friend.mans_attitude == 'friends':
         return render_template('user_id.html', **info, title=user.name, text='', button_info='other')
     if check_friend.mans_attitude == 'sent':
