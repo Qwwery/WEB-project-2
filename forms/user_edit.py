@@ -10,3 +10,4 @@ class UserEditForm(FlaskForm):
     age = IntegerField('*Возраст')
     city = StringField('Город')
     setup_see = BooleanField('Отображать шутку', default=False)
+    domen = StringField('Псевдоним')

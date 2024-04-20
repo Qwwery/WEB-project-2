@@ -23,6 +23,7 @@ class User(SqlAlchemyBase, UserMixin):
     confirmed = sqlalchemy.Column(sqlalchemy.Boolean, default=False)
     setup = sqlalchemy.Column(sqlalchemy.String)
     setup_see = sqlalchemy.Column(sqlalchemy.Boolean, default=True)
+    domen = sqlalchemy.Column(sqlalchemy.String)
 
     def __repr__(self):
         return f"<User> id:{self.id}, surname:{self.surname}, name:{self.name}"

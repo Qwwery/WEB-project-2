@@ -46,7 +46,18 @@
     </p>
 
     {% if current_user.is_authenticated and current_user.confirmed %}
+        <p>
+            {{ form.domen.label }}<br>
+            {{ form.domen(class="form-control", type="text") }}<br>
+            {% for error in form.domen.errors %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </p>
+
         <p>{{ form.setup_see() }} {{ form.setup_see.label }}</p>
+
     {% endif %}
     <button name="edit" type="submit" class="btn btn-primary btn_sms">Принять изменения</button>
     <div>{{ message }}</div>

@@ -19,7 +19,7 @@ from data.friends import Friends
 from data.messages import Messages
 from time_news import get_str_time  # deleted
 import datetime
-from check_email_and_password import check_correct_email, check_correct_password
+from check_email_and_password import check_correct_email, check_correct_password, check_correct_domen_user
 import git
 from api import get_setup
 import json
@@ -315,6 +315,7 @@ def edit_home(id):
         form.city.data = user.city
         form.age.data = user.age
         form.setup_see.data = user.setup_see
+        form.domen.data = user.domen
 
     if form.validate_on_submit():
         age = form.age.data
@@ -338,13 +339,37 @@ def edit_home(id):
         if not city.strip():
             city = 'Не указан'
 
+        domen = form.domen.data
+        check_domen = check_correct_domen_user(domen)
+        if not check_domen[0]:
+            return render_template('user_edit.html', message=f"Ошибка: {check_domen[1]}",
+                                   form=form,
+                                   title='Редактирование профиля')
+
+        all_users = db_sess.query(User).filter(User.id != current_user.id).all()
+        for elem in all_users:
+            if elem.domen == domen:
+                return render_template('user_edit.html', message=f"Ошибка: Данный псевдоним занят",
+                                       form=form,
+                                       title='Редактирование профиля')
+
         setup_see = form.setup_see.data
         user = db_sess.query(User).filter(User.id == current_user.id).first()
+
+        if str(domen) != str(user.domen):
+            if domen.isdigit():
+                return render_template('user_edit.html',
+                                       message=f'Ошибка: В изменённом псевдониме должен быть хотя '
+                                               f'бы один латинский символ или "_"',
+                                       form=form,
+                                       title='Редактирование профиля')
+
         user.name = name
         user.surname = surname
         user.age = age
         user.city = city
         user.setup_see = setup_see
+        user.domen = domen
         db_sess.commit()
 
         return redirect(f'/home/{current_user.id}')
@@ -432,13 +457,17 @@ def registration():
             email=form.email.data,
             age=form.age.data,
             city=city,
-            setup=setup
+            setup=setup,
+            domen='ы'
         )
         user.set_password(form.password.data)
         db_sess.add(user)
         db_sess.commit()
 
         user_info = db_sess.query(User).filter(User.email == form.email.data).first()
+        user_info.domen = str(user_info.id)
+        db_sess.commit()
+
         login_user(user_info, remember=form.remember_me.data)
         return redirect('/')
     return render_template('registration.html', form=form, title='Регистрация')

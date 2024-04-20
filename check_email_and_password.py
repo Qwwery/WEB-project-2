@@ -12,6 +12,21 @@ def check_simvols(password):
     return True
 
 
+def check_correct_domen_user(domen):
+    if len(domen) > 20:
+        return False, 'Длина псевдонима не должна превышать 20 символов'
+
+    check_string = set(ascii_uppercase) | set(ascii_letters) | set(digits) | set('_')
+    for elem in domen:
+        if elem not in check_string:
+            return False, 'В псевдониме разрешены только латинские буквы, цифры и символ "_"'
+
+    if domen.count('_') > 5:
+        return False, 'В псевдониме символ "_" можно использовать не более 5 раз'
+
+    return True, 'успех'
+
+
 def check_correct_password(password):
     if not (8 <= len(password) <= 16):
         return False, 'длина пароля от 8 до 16 символов'
