@@ -19,7 +19,7 @@ from data.friends import Friends
 from data.messages import Messages
 from time_news import get_str_time  # deleted
 import datetime
-from check_email_and_password import check_correct_email, check_correct_password, check_correct_domen_user
+from check_correct_data_input import check_correct_email, check_correct_password, check_correct_domen_user
 import git
 from api import get_setup
 import json
@@ -346,13 +346,6 @@ def edit_home(id):
                                    form=form,
                                    title='Редактирование профиля')
 
-        all_users = db_sess.query(User).filter(User.id != current_user.id).all()
-        for elem in all_users:
-            if elem.domen == domen:
-                return render_template('user_edit.html', message=f"Ошибка: Данный псевдоним занят",
-                                       form=form,
-                                       title='Редактирование профиля')
-
         setup_see = form.setup_see.data
         user = db_sess.query(User).filter(User.id == current_user.id).first()
 
@@ -361,6 +354,13 @@ def edit_home(id):
                 return render_template('user_edit.html',
                                        message=f'Ошибка: В изменённом псевдониме должен быть хотя '
                                                f'бы один латинский символ или "_"',
+                                       form=form,
+                                       title='Редактирование профиля')
+
+        all_users = db_sess.query(User).filter(User.id != current_user.id).all()
+        for elem in all_users:
+            if elem.domen == domen:
+                return render_template('user_edit.html', message=f"Ошибка: Данный псевдоним занят",
                                        form=form,
                                        title='Редактирование профиля')
 
