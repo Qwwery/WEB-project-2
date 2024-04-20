@@ -227,7 +227,7 @@ def first():
         surname = db_sess.query(User).filter(User.id == new.author).first().surname
         confirm = db_sess.query(User).filter(User.id == new.author).first().confirmed
         confirmed_check.append(confirm)
-        authors.append(f"{surname} {name}")
+        authors.append(f"{name} {surname}")
         # new.data = get_str_time(new.data)
         new.date = datetime.datetime.now()
     info = {

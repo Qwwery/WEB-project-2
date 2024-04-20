@@ -3,7 +3,7 @@
 {% block content %}
 <form action="" class="login_form" method="post">
         {% if user.confirmed == True %}
-            <h1>Пользователь {{ user.surname }} {{ user.name }}<img src="{{url_for('static', filename='img/galka.png')}}" style="max-width: 3.74%"></h1><hr>
+            <h1>Пользователь {{ user.name }} {{ user.surname }}<img src="{{url_for('static', filename='img/galka.png')}}" style="max-width: 3.74%"></h1><hr>
             <p>Возраст: {{user.age}}</p><hr>
             <p>Город: {{user.city}}</p><hr>
             <p>Статус подтверждения: Cool user</p><hr>
@@ -13,7 +13,7 @@
                 <p>Данный пользователь еврей, скрывает шутки за 300</p><hr>
             {% endif %}
         {% else %}
-            <h1>Пользователь {{ user.surname }} {{ user.name }}</h1><hr>
+            <h1>Пользователь {{ user.name }} {{ user.surname }}</h1><hr>
             <p>Возраст: {{user.age}}</p><hr>
             <p>Город: {{user.city}}</p><hr>
             <p>Статус подтверждения: Ботяра</p><hr>

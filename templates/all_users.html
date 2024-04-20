@@ -8,9 +8,9 @@
     {% for user in users %}
         <hr>
         {% if user.confirmed == False %}
-            <a href="user/{{ user.id }}" class="links">{{ user.surname }} {{ user.name }}</a>
+            <a href="user/{{ user.id }}" class="links">{{ user.name }} {{ user.surname }}</a>
         {% else %}
-            <h5><a href="user/{{ user.id }}" class="links"> {{ user.surname }} {{ user.name }} <img src="{{url_for('static', filename='img/galka.png')}}" style="max-width: 3.14%"></a></h5>
+            <h5><a href="user/{{ user.id }}" class="links"> {{ user.name }} {{ user.surname }} <img src="{{url_for('static', filename='img/galka.png')}}" style="max-width: 3.14%"></a></h5>
         {% endif %}
         <hr>
     {% endfor %}
