@@ -4,8 +4,8 @@
     {% if current_user.is_authenticated %}
         <form action="" class="login_form">
             <h4 align="center">{{text}}</h4>
-            <a href="/" class="btn btn-primary btn_sms error_confirmed">Главная</a>
-            <a href="/home/{{current_user.id}}" class="btn btn-warning">Домашняя</a>
+            <a style="text-align:center;display:block;" href="/" class="btn btn-primary btn_sms error_confirmed">Главная</a>
+            <a style="text-align:center;display:block;" href="/home/{{current_user.id}}" class="btn btn-success">Домашняя</a>
         </form>
     {% else %}
             <a href="/login" class="btn btn-warning">Вход</a>

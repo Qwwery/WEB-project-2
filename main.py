@@ -49,6 +49,11 @@ def page_not_found(e):
     return render_template('404.html')
 
 
+@app.errorhandler(401)
+def page_not_found(e):
+    return render_template('404.html')
+
+
 database = []
 
 
@@ -75,8 +80,10 @@ def send():
 
 
 @app.route('/all_users', methods=['GET', 'POST'])
-@login_required
 def all_users():
+    if not current_user.is_authenticated:
+        return abort(404)
+
     db_sess = db_session.create_session()
     users = db_sess.query(User).filter(User.id != current_user.id).all()
     users = sorted(users, key=lambda x: (x.surname, x.name))
@@ -86,8 +93,12 @@ def all_users():
     return render_template('all_users.html', users=users, action='')
 
 
+@login_required
 @app.route(f'/messages', methods=['GET', 'POST'])
 def get_message():
+    if not current_user.is_authenticated:
+        return abort(404)
+
     db_sess = db_session.create_session()
     data = request.args
 
@@ -231,6 +242,9 @@ def first():
 @app.route('/edit_news/<int:id>', methods=['GET', 'POST'])
 @login_required
 def news_edit(id):
+    if not current_user.is_authenticated:
+        return abort(404)
+
     db_sess = db_session.create_session()
     form = EditNewsForm()
     if request.method == "GET":
@@ -285,9 +299,13 @@ def news_edit(id):
 @app.route('/edit_home/<int:id>', methods=['GET', 'POST'])
 @login_required
 def edit_home(id):
+    if not current_user.is_authenticated:
+        return abort(404)
+
     db_sess = db_session.create_session()
     if id != current_user.id:
         abort(404)
+
     form = UserEditForm()
     if request.method == "GET":
         db_sess = db_session.create_session()
@@ -336,6 +354,9 @@ def edit_home(id):
 
 @app.route('/confirm/<confirmation_code>')
 def confirm(confirmation_code):
+    if not current_user.is_authenticated:
+        return abort(404)
+
     db_sess = db_session.create_session()
     try:
         unconfirmed_user_id = serializer.loads(confirmation_code, salt='confirm-salt', max_age=180)
@@ -356,6 +377,9 @@ def confirm(confirmation_code):
 
 @app.route('/registration', methods=['GET', 'POST'])
 def registration():
+    if current_user.is_authenticated:
+        abort(404)
+
     form = RegForm()
     if form.validate_on_submit():
         db_sess = db_session.create_session()
@@ -441,8 +465,12 @@ def login():
     return render_template('login.html', title='Авторизация', form=form)
 
 
+@login_required
 @app.route('/new_news', methods=['GET', 'POST'])
 def new_news():
+    if not current_user.is_authenticated:
+        abort(404)
+
     form = NewsForm()
     if form.validate_on_submit():
         db_sess = db_session.create_session()
@@ -493,6 +521,9 @@ def send_email(db_sess):
 
 @app.route('/home/<int:id>', methods=['GET', 'POST'])
 def home(id):
+    if not current_user.is_authenticated:
+        return abort(404)
+
     try:
         id_user = current_user.id
     except Exception:
@@ -537,9 +568,11 @@ def im():
         return render_template(template_name_or_list='im.html', form=form, title=user.name)
 
 
-@login_required
 @app.route('/search_user', methods=['GET', 'POST'])
 def search_user():
+    if not current_user.is_authenticated:
+        abort(404)
+
     db_sess = db_session.create_session()
     all_users = db_sess.query(User).filter(User.id != current_user.id).all()
 
@@ -683,6 +716,9 @@ def user(id):
 
 @app.route('/friends', methods=['GET', 'POST'])
 def friends():
+    if not current_user.is_authenticated:
+        abort(404)
+
     db_sess = db_session.create_session()
     friends_info = db_sess.query(Friends).filter(Friends.second_id == current_user.id,
                                                  Friends.mans_attitude == 'friends').all()
@@ -699,6 +735,9 @@ def friends():
 
 @app.route('/friend_requests')
 def friend_requests():
+    if not current_user.is_authenticated:
+        abort(404)
+
     db_sess = db_session.create_session()
     friend_requests = db_sess.query(Friends).filter(Friends.first_id == current_user.id,
                                                     Friends.mans_attitude == 'received').all()
