@@ -364,6 +364,9 @@ def edit_home(id):
                                        form=form,
                                        title='Редактирование профиля')
 
+        if form.update_setup.data and form.update_setup_confirm.data:
+            user.setup = get_setup()
+
         user.name = name
         user.surname = surname
         user.age = age

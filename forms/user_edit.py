@@ -11,3 +11,5 @@ class UserEditForm(FlaskForm):
     city = StringField('Город')
     setup_see = BooleanField('Отображать шутку', default=False)
     domen = StringField('Псевдоним')
+    update_setup = BooleanField('Изменить шутку', default=False)
+    update_setup_confirm = BooleanField('Подтвердить измену шутки', default=False)
