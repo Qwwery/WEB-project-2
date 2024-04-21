@@ -30,7 +30,7 @@ import smtplib
 from email.mime.text import MIMEText
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'ebfqwejg;asdlp1LJNpjqwfffaffaWFEKjwEKHFNLk;fwfjnl42QEW:jFKqeb'
+app.config['SECRET_KEY'] = 'ebfqwejg;asdlp1LJNpjqwfffaffaWFEKjwEKHFNLk;fwfbjnl42QEW:jFKqeb'
 db_session.global_init("db/db.db")
 
 
@@ -340,16 +340,17 @@ def edit_home(id):
             city = 'Не указан'
 
         domen = form.domen.data
-        check_domen = check_correct_domen_user(domen)
-        if not check_domen[0]:
-            return render_template('user_edit.html', message=f"Ошибка: {check_domen[1]}",
-                                   form=form,
-                                   title='Редактирование профиля')
+        if domen is not None:
+            check_domen = check_correct_domen_user(domen)
+            if not check_domen[0]:
+                return render_template('user_edit.html', message=f"Ошибка: {check_domen[1]}",
+                                       form=form,
+                                       title='Редактирование профиля')
 
         setup_see = form.setup_see.data
         user = db_sess.query(User).filter(User.id == current_user.id).first()
 
-        if str(domen) != str(user.domen):
+        if (domen is not None) and (str(domen) != str(user.domen)):
             if domen.isdigit():
                 return render_template('user_edit.html',
                                        message=f'Ошибка: В изменённом псевдониме должен быть хотя '
@@ -372,7 +373,8 @@ def edit_home(id):
         user.age = age
         user.city = city
         user.setup_see = setup_see
-        user.domen = domen
+        if domen is not None:
+            user.domen = domen
         db_sess.commit()
 
         return redirect(f'/home/{current_user.id}')
