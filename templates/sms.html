@@ -1,48 +1,81 @@
 {% extends "base.html" %}
 
 {% block content %}
-<body>
-<h1 class="h1_sms"> Чат {{name_chat}}</h1>
-<div class="scrole_sms frame_sms">
-    {% for message in messages %}
-        <p>{{ message.name }}: {{ message.text }}</p>
-    {% endfor %}
-    <script>
-        <!--
-        function timedRefresh(timeoutPeriod) {
-            setTimeout("location.reload(true);",timeoutPeriod);
-        }
+<div align="center">
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Test sborka №1</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"
+            integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg=="
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js"
+            integrity="sha512-aMGMvNYu8Ue4G+fHa359jcPb1u+ytAF+P2SCb+PxrjCdO3n3ZTxJ30zuH39rimUggmTwmh2u7wvQsDTHESnmfQ=="
+            crossorigin="anonymous"></script>
+    <script type="text/javascript" charset="utf-8">
+        $(document).ready(function () {
+            var socket = io()
 
-        window.onload = timedRefresh(5000);
+            socket.on('connect', function () {
+                var id_friends = document.getElementById('id_friends').innerHTML
+                socket.emit('my_event', {'id_friends': id_friends})
+            });
 
-          -->
+            socket.on('my_response', function (msg, cb) {
+                $('#log').append('<br>' + $('<div/>').text(msg.data).html());
+                if (cb)
+                    cb();
+            });
+
+            var ping_pong_times = [];
+            var start_time;
+            window.setInterval(function () {
+                start_time = (new Date).getTime();
+                $('#transport').text(socket.io.engine.transport.name);
+                socket.emit('my_ping');
+            }, 1000)
+
+            socket.on('my_pong', function () {
+                var latency = (new Date).getTime() - start_time;
+                ping_pong_times.push(latency);
+                ping_pong_times = ping_pong_times.slice(-30);
+                var sum = 0
+                for (var i = 0; i < ping_pong_times.length; i++)
+                    sum += ping_pong_times[i];
+                $('#ping-pong').text(Math.round(10 * sum / ping_pong_times.length) / 10);
+            });
+
+            $('form#room').submit(function (event) {
+                socket.emit('room_event', {room: $('#room_name').val(), data: $('#room_data').val()});
+                return false;
+            });
+
+            $('form#post_message').submit(function (event) {
+                var id_friends = document.getElementById('id_friends').innerHTML
+                var id_user = document.getElementById('id_user').innerHTML
+                socket.emit('run_new_message', {'message': $('#new_message').val(), 'id_friends': id_friends, 'id_user': id_user})
+                document.getElementById("post_message").reset();
+                return false;
+            })
+        });
     </script>
-</div>
-<form class="sms_login_form center_label" method="post">
-    {{ form.hidden_tag() }}
-    <div>
-
-        <p>
-        {{ form.text.label }}<br>
-        {{ form.text(class="form-control") }}
-        {% for error in form.text.errors %}
-            <p class="alert alert-danger" role="alert">
-                {{ error }}
-            </p>
-        {% endfor %}
+    <p>
+        Async mode is: <b>{{ async_mode }}</b><br>
+        Current transport is: <b><span id="transport"></span></b><br>
+        Average ping/pong latency: <b><span id="ping-pong"></span> ms</b>
     </p>
+    <div id="log">
+    {% for message in messages %}
+        {{ message.author }}: {{ message.message }}<br>
+    {% endfor %}
     </div>
-    <button name="btn_submit" type="submit" style="opacity: 0; pointer-events: none"></button>
-    <button name="btn_translate_eng" type="submit" class="btn btn-success btn_sms">На английский</button>
-    <button name="btn_submit" type="submit" class="btn btn-primary btn_sms">Отправить</button>
-    <button name="btn_translate_russ" type="submit" class="btn btn-danger btn_sms">На русский</button>
-    <br>
-</form>
-</body>
 
-<script>
-let scroleSms= document.querySelector(".scrole_sms");
-scroleSms.scrollTop = scroleSms.scrollHeight;
-</script>
-
+    <form action="#" method="POST" id="post_message">
+        <input type="text" name="new_message" id="new_message" placeholder="Message">
+        <input type="submit" value="post">
+    </form>
+    <p style="display: none;" id='id_friends'>{{ id_friends }}</p>
+    <p style="display: none;" id='id_user'>{{ current_user.id }}</p>
+</div>
 {% endblock %}
