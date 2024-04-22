@@ -396,7 +396,7 @@ def confirm(confirmation_code):
             user.confirmed = True
             db_sess.commit()
 
-            return render_template('home.html', text='Вы подтвердили вашу учетную запись')
+            return render_template('home.html', text='Вы подтвердили вашу учетную запись', stop='stop')
         else:
             return render_template('confirmed_sms.html', title='NaSvyazi', text='Неизвестная ошибка')
     except Exception as text:
