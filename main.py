@@ -643,6 +643,12 @@ def user(id):
     db_sess = db_session.create_session()
     user = db_sess.query(User).filter(User.id == id).first()
 
+    if not user:
+        return abort(404)
+
+    if user.id == current_user.id:
+        return redirect(f'/home/{current_user.id}')
+
     info = {
         'user': user
     }
