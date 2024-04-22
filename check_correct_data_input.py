@@ -28,8 +28,8 @@ def check_correct_domen_user(domen):
 
 
 def check_correct_password(password):
-    if not (8 <= len(password) <= 16):
-        return False, 'длина пароля от 8 до 16 символов'
+    if not (8 <= len(password) <= 30):
+        return False, 'длина пароля от 8 до 30 символов'
     if len(set(password) & (set(digits))) == 0:
         return False, 'пароль должен содержать хотя бы одну цифру'
     if len(set(password) & set(ascii_letters)) == 0:
