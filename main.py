@@ -126,11 +126,11 @@ def all_users():
     return render_template('all_users.html', users=users, action='')
 
 
-@login_required
-@app.route(f'/messages', methods=['GET', 'POST'])
-def get_message():
-    if not current_user.is_authenticated:
-        return abort(404)
+# @login_required
+# @app.route(f'/messages', methods=['GET', 'POST'])
+# def get_message():
+#     if not current_user.is_authenticated:
+#         return abort(404)
 
 @app.route('/messages')
 def messages():
@@ -150,7 +150,7 @@ def messages():
         'id_friends': friends,
         'messages': result_messages,
         'u_friends': request.args.get('before'),
-        'who': who,
+        'who': request.args.get('before'),
         'title': db_sess.query(User).filter(User.id == request.args.get('before')).first().name
     }
 
@@ -221,7 +221,7 @@ def first():
     info = {
         'news': news,
         'authors': authors,
-        'confirm_check': confirmed_check
+        'confirm_check': confirmed_check,
         'title': 'NaSvyazi',
         'text': text,
         'action': ''
