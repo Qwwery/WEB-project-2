@@ -23,12 +23,15 @@ from forms.reg_form import RegForm
 from forms.news_form import NewsForm
 from forms.sms_form import SmsForm
 from forms.edit_news_form import EditNewsForm
+from forms.user_edit import UserEditForm
 from translate import eng_to_rus, rus_to_eng, make_translate
 from data.friends import Friends
 from data.messages import Messages
 from time_news import get_str_time  # deleted
 import datetime
+from check_correct_data_input import check_correct_email, check_correct_password, check_correct_domen_user
 import git
+from api import get_setup
 import json
 import pytz
 import logging
@@ -63,7 +66,7 @@ for key, value in trans_copy.items():
 async_mode = None
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'secret!'
+app.config['SECRET_KEY'] = 'ebfqwejg;asdlp1LJNpjqwfffaffaWFEKjwEKHFNLk;fwfbjnl42QEW:jFKqeb'
 db_session.global_init("db/db.db")
 serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 socketio = SocketIO(app, async_mode=async_mode)
@@ -72,6 +75,14 @@ thread_lock = Lock()
 login_manager = LoginManager()
 login_manager.init_app(app)
 
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html')
+
+
+@app.errorhandler(401)
+def page_not_found(e):
+    return render_template('404.html')
 
 @socketio.on('changing_layout')
 def on_changing_layout(data):
@@ -99,6 +110,27 @@ def message(data):
 def my_event(data):
     join_room(data['id_friends'])
 
+
+
+@app.route('/all_users', methods=['GET', 'POST'])
+def all_users():
+    if not current_user.is_authenticated:
+        return abort(404)
+
+    db_sess = db_session.create_session()
+    users = db_sess.query(User).filter(User.id != current_user.id).all()
+    users = sorted(users, key=lambda x: (x.surname, x.name))
+    if request.method == 'POST' and 'search' in request.form and len(request.form['search'].strip()) > 0:
+        users = list(filter(lambda x: request.form['search'].lower() in x.name.lower(), users))
+        return render_template('all_users.html', users=users, action='btn')
+    return render_template('all_users.html', users=users, action='')
+
+
+@login_required
+@app.route(f'/messages', methods=['GET', 'POST'])
+def get_message():
+    if not current_user.is_authenticated:
+        return abort(404)
 
 @app.route('/messages')
 def messages():
@@ -128,11 +160,6 @@ def messages():
 @socketio.on('add_message')
 def on_add_message():
     emit('my_response', {'data': 'test ' * 100})
-
-
-@app.errorhandler(404)
-def page_not_found(e):
-    return render_template('404.html')
 
 
 @socketio.event
@@ -182,15 +209,19 @@ def first():
     news = news[::-1]
 
     authors = []
+    confirmed_check = []
     for new in news:
         name = db_sess.query(User).filter(User.id == new.author).first().name
         surname = db_sess.query(User).filter(User.id == new.author).first().surname
-        authors.append(f"{surname} {name}")
+        confirm = db_sess.query(User).filter(User.id == new.author).first().confirmed
+        confirmed_check.append(confirm)
+        authors.append(f"{name} {surname}")
         # new.data = get_str_time(new.data)
         new.date = datetime.datetime.now()
     info = {
         'news': news,
         'authors': authors,
+        'confirm_check': confirmed_check
         'title': 'NaSvyazi',
         'text': text,
         'action': ''
@@ -202,9 +233,12 @@ def first():
 @app.route('/edit_news/<int:id>', methods=['GET', 'POST'])
 @login_required
 def news_edit(id):
+    if not current_user.is_authenticated:
+        return abort(404)
+
+    db_sess = db_session.create_session()
     form = EditNewsForm()
     if request.method == "GET":
-        db_sess = db_session.create_session()
         new_check = db_sess.query(News).filter(News.id == id).filter(News.author == current_user.id).first()
         if current_user.email == 'regeneration76@yandex.ru' or current_user.email == 'valerylarionov06@gmail.com':
             new_check = db_sess.query(News).filter(News.id == id).first()
@@ -216,13 +250,23 @@ def news_edit(id):
         else:
             abort(404)
     if form.validate_on_submit():
-        db_sess = db_session.create_session()
         new_obj = db_sess.query(News).filter(News.id == id).filter(News.author == current_user.id).first()
         if current_user.email == 'regeneration76@yandex.ru' or current_user.email == 'valerylarionov06@gmail.com':
             new_obj = db_sess.query(News).filter(News.id == id).first()
         if 'edit' in request.form:
             if new_obj:
-                new_obj.name = form.name.data
+                if len(form.name.data.strip()) > 100:
+                    return render_template('edit_news.html', title='Редактирование работы',
+                                           form=form, action='',
+                                           message=f'Слишком длинное название: {len(form.name.data.strip())} '
+                                                   f'(максимум 100 символов)')
+
+                if len(form.text.data.strip()) > 1000:
+                    return render_template('edit_news.html', title='Редактирование работы',
+                                           form=form, action='',
+                                           message=f'Слишком длинное описание {len(form.text.data.strip())} '
+                                                   f'(максимум 1000 символов)')
+                new_obj.name = form.name.data.strip()
                 new_obj.text = form.text.data
                 new_obj.private = form.private.data
                 db_sess.merge(new_obj)
@@ -230,7 +274,9 @@ def news_edit(id):
                 return redirect('/')
 
         elif 'confirm_del' in request.form:
-            return render_template('edit_news.html', title='Редактирование работы', form=form, action='confirm_del')
+            return render_template('edit_news.html', title='Редактирование работы', form=form,
+                                   action='confirm_del')
+
         elif 'yes' in request.form:
             if new_obj:
                 db_sess.delete(new_obj)
@@ -241,8 +287,97 @@ def news_edit(id):
     return render_template('edit_news.html', title='Редактирование работы', form=form, action='')
 
 
+@app.route('/edit_home/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit_home(id):
+    if not current_user.is_authenticated:
+        return abort(404)
+
+    db_sess = db_session.create_session()
+    if id != current_user.id:
+        abort(404)
+
+    form = UserEditForm()
+    if request.method == "GET":
+        db_sess = db_session.create_session()
+        user = db_sess.query(User).filter(User.id == current_user.id).first()
+        form.name.data = user.name
+        form.surname.data = user.surname
+        form.city.data = user.city
+        form.age.data = user.age
+        form.setup_see.data = user.setup_see
+        form.domen.data = user.domen
+
+    if form.validate_on_submit():
+        age = form.age.data
+        if age < 1 or age > 150:
+            return render_template('user_edit.html', message="Что с возрастом?", form=form,
+                                   title='Редактирование профиля')
+        name = form.name.data.strip()
+        if len(name) > 30:
+            return render_template('user_edit.html', message="Ошибка: Слишком длинное имя", form=form,
+                                   title='Редактирование профиля')
+        surname = form.surname.data.strip()
+        if len(surname) > 30:
+            return render_template('user_edit.html', message="Ошибка: Слишком длинная фамилия",
+                                   form=form,
+                                   title='Редактирование профиля')
+        city = form.city.data.strip()
+        if len(city) > 50:
+            return render_template('user_edit.html', message="Ошибка: Слишком длинный город",
+                                   form=form,
+                                   title='Редактирование профиля')
+        if not city.strip():
+            city = 'Не указан'
+
+        domen = form.domen.data
+        if domen is not None:
+            check_domen = check_correct_domen_user(domen)
+            if not check_domen[0]:
+                return render_template('user_edit.html', message=f"Ошибка: {check_domen[1]}",
+                                       form=form,
+                                       title='Редактирование профиля')
+
+        setup_see = form.setup_see.data
+        user = db_sess.query(User).filter(User.id == current_user.id).first()
+
+        if (domen is not None) and (str(domen) != str(user.domen)):
+            if domen.isdigit():
+                return render_template('user_edit.html',
+                                       message=f'Ошибка: В изменённом псевдониме должен быть хотя '
+                                               f'бы один латинский символ или "_"',
+                                       form=form,
+                                       title='Редактирование профиля')
+
+        all_users = db_sess.query(User).filter(User.id != current_user.id).all()
+        for elem in all_users:
+            if elem.domen == domen:
+                return render_template('user_edit.html', message=f"Ошибка: Данный псевдоним занят",
+                                       form=form,
+                                       title='Редактирование профиля')
+
+        if form.update_setup.data:
+            user.setup = get_setup()
+
+        user.name = name
+        user.surname = surname
+        user.age = age
+        user.city = city
+        user.setup_see = setup_see
+        if domen is not None:
+            user.domen = domen
+        db_sess.commit()
+
+        return redirect(f'/home/{current_user.id}')
+
+    return render_template('user_edit.html', title='Редактирование профиля', form=form, action='')
+
+
 @app.route('/confirm/<confirmation_code>')
 def confirm(confirmation_code):
+    if not current_user.is_authenticated:
+        return abort(404)
+
     db_sess = db_session.create_session()
     try:
         unconfirmed_user_id = serializer.loads(confirmation_code, salt='confirm-salt', max_age=180)
@@ -252,7 +387,7 @@ def confirm(confirmation_code):
             user.confirmed = True
             db_sess.commit()
 
-            return render_template('home.html', text='Вы подтвердили вашу учетную запись')
+            return render_template('home.html', text='Вы подтвердили вашу учетную запись', stop='stop')
         else:
             return render_template('confirmed_sms.html', title='NaSvyazi', text='Неизвестная ошибка')
     except Exception as text:
@@ -262,6 +397,9 @@ def confirm(confirmation_code):
 
 @app.route('/registration', methods=['GET', 'POST'])
 def registration():
+    if current_user.is_authenticated:
+        abort(404)
+
     form = RegForm()
     if form.validate_on_submit():
         db_sess = db_session.create_session()
@@ -272,24 +410,59 @@ def registration():
                                    title='Регистрация')
         age = form.age.data
         if age < 1 or age > 150:
-            return render_template('registration.html', message="Ошибка регистрации: что с возрастом?", form=form,
+            return render_template('registration.html', message="Ошибка регистрации: что с возрастом?",
+                                   form=form, title='Регистрация')
+
+        name = form.name.data.strip()
+        if len(name) > 30:
+            return render_template('registration.html',
+                                   message="Ошибка регистрации: Слишком длинное имя", form=form,
                                    title='Регистрация')
+
+        surname = form.surname.data.strip()
+        if len(surname) > 30:
+            return render_template('registration.html',
+                                   message="Ошибка регистрации: Слишком длинная фамилия", form=form,
+                                   title='Регистрация')
+
         if not form.city.data:
             city = 'Не указан'
         else:
-            city = form.city.data
+            city = form.city.data.strip()
+
+        if len(city) > 50:
+            return render_template('registration.html',
+                                   message="Ошибка регистрации: Слишком длинный город", form=form,
+                                   title='Регистрация')
+
+        if not check_correct_email(form.email.data)[0]:
+            return render_template('registration.html', message="Ошибка регистрации: плохая почта",
+                                   form=form,
+                                   title='Регистрация')
+
+        check_password = check_correct_password(form.password.data)
+        if not check_password[0]:
+            return render_template('registration.html', message=f"Ошибка регистрации: "
+                                                                f"{check_password[1]}", form=form, title='Регистрация')
+
+        setup = get_setup()
         user = User(
-            name=form.name.data,
-            surname=form.surname.data,
+            name=name,
+            surname=surname,
             email=form.email.data,
             age=form.age.data,
-            city=city
+            city=city,
+            setup=setup,
+            domen='ы'
         )
         user.set_password(form.password.data)
         db_sess.add(user)
         db_sess.commit()
 
         user_info = db_sess.query(User).filter(User.email == form.email.data).first()
+        user_info.domen = str(user_info.id)
+        db_sess.commit()
+
         login_user(user_info, remember=form.remember_me.data)
         return redirect('/')
     return render_template('registration.html', form=form, title='Регистрация')
@@ -316,13 +489,27 @@ def login():
     return render_template('login.html', title='Авторизация', form=form)
 
 
+@login_required
 @app.route('/new_news', methods=['GET', 'POST'])
 def new_news():
+    if not current_user.is_authenticated:
+        abort(404)
+
     form = NewsForm()
     if form.validate_on_submit():
         db_sess = db_session.create_session()
         user_id = db_sess.query(User).filter(User.email == current_user.email).first().id
+        if len(form.name.data.strip()) > 100:
+            return render_template('new_news.html', title='Редактирование работы',
+                                   form=form, action='',
+                                   message=f'Слишком длинное название: {len(form.name.data.strip())} '
+                                           f'(максимум 100 символов)')
 
+        if len(form.text.data.strip()) > 1000:
+            return render_template('new_news.html', title='Редактирование работы',
+                                   form=form, action='',
+                                   message=f'Слишком длинное описание {len(form.text.data.strip())} '
+                                           f'(максимум 1000 символов)')
         news = News(
             author=user_id,
             name=form.name.data,
@@ -341,30 +528,40 @@ def new_news():
     return render_template('new_news.html', form=form, title='Новая новость')
 
 
+def send_email(db_sess):
+    user = db_sess.query(User).filter(User.email == current_user.email).first()
+    confirmation_code = serializer.dumps(user.id, salt='confirm-salt')
+    confirm_url = f'{request.host}/confirm/{confirmation_code}'
+    msg = MIMEText(f'''Please confirm your account by clicking the link below: {confirm_url}''', 'html')
+    msg['Subject'] = 'Account Confirmation Required'
+    msg['From'] = 'valerylarionov06@gmail.com'
+    msg['To'] = user.email
+
+    with smtplib.SMTP('smtp.gmail.com', 587) as server:
+        server.starttls()
+        server.login('valerylarionov06@gmail.com', 'hafg vjqg nywe khnu')
+        server.sendmail('valerylarionov06@gmail.com', [user.email], msg.as_string())
+
+
 @app.route('/home/<int:id>', methods=['GET', 'POST'])
 def home(id):
+    if not current_user.is_authenticated:
+        return abort(404)
+
     try:
         id_user = current_user.id
     except Exception:
         abort(404)
     if id_user == id:
+        db_sess = db_session.create_session()
+        news = db_sess.query(News).filter(News.author == current_user.id).all()
+        news = news[::-1]
         if 'confirm' in request.form:
-            db_sess = db_session.create_session()
-            user = db_sess.query(User).filter(User.email == current_user.email).first()
-            confirmation_code = serializer.dumps(user.id, salt='confirm-salt')
-            confirm_url = f'{request.host}/confirm/{confirmation_code}'
-            msg = MIMEText(f'''Please confirm your account by clicking the link below: {confirm_url}''', 'html')
-            msg['Subject'] = 'Account Confirmation Required'
-            msg['From'] = 'valerylarionov06@gmail.com'
-            msg['To'] = user.email
-
-            with smtplib.SMTP('smtp.gmail.com', 587) as server:
-                server.starttls()
-                server.login('valerylarionov06@gmail.com', 'hafg vjqg nywe khnu')
-                server.sendmail('valerylarionov06@gmail.com', [user.email], msg.as_string())
+            send_email(db_sess)
             return render_template('home.html', title=current_user.name,
-                                   text='Зайдите на почту и подтвердите свою учетную запись в течение трёх минут')
-        return render_template('home.html', title=current_user.name, text='')
+                                   text='Зайдите на почту и подтвердите свою учетную запись в течение трёх минут',
+                                   news=news)
+        return render_template('home.html', title=current_user.name, text='', news=news)
     else:
         abort(404)
 
@@ -385,7 +582,8 @@ def im():
     id_chat = request.args.get('ch')
 
     db_sess = db_session.create_session()
-    is_friends = db_sess.query(Friends).filter(Friends.first_id == current_user.id, Friends.second_id == id_user).all()
+    is_friends = db_sess.query(Friends).filter(Friends.first_id == current_user.id,
+                                               Friends.second_id == id_user).all()
     if is_friends:
         user = db_sess.query(User).filter(User.id == id_user).first()
     else:
@@ -397,6 +595,9 @@ def im():
 
 @app.route('/search_user', methods=['GET', 'POST'])
 def search_user():
+    if not current_user.is_authenticated:
+        abort(404)
+
     db_sess = db_session.create_session()
     all_users = db_sess.query(User).filter(User.id != current_user.id).all()
 
@@ -432,6 +633,12 @@ def user(id):
     db_sess = db_session.create_session()
     user = db_sess.query(User).filter(User.id == id).first()
 
+    if not user:
+        return abort(404)
+
+    if user.id == current_user.id:
+        return redirect(f'/home/{current_user.id}')
+
     info = {
         'user': user
     }
@@ -440,8 +647,9 @@ def user(id):
 
             check_blocked = db_sess.query(Friends).filter(Friends.first_id == id,
                                                           Friends.second_id == current_user.id).first()
-            if check_blocked and check_blocked.mans_attitude == 'ban':  # перед оправкой дружбы проверяем, не заблокирован ли отправитель
-                return render_template('user_id.html', **info, title=user.name, text='Пользователь вас заблокировал')
+            if check_blocked and check_blocked.mans_attitude == 'ban':
+                return render_template('user_id.html', **info, title=user.name,
+                                       text='Пользователь вас заблокировал')
 
             check_friend = db_sess.query(Friends).filter(Friends.first_id == current_user.id,
                                                          Friends.second_id == id).first()
@@ -461,11 +669,12 @@ def user(id):
                 db_sess.add(first_zapic)
 
                 db_sess.commit()
-                return render_template('user_id.html', **info, title=user.name, text='Запрос был отправлен',
+                return render_template('user_id.html', **info, title=user.name,
+                                       text='Запрос был отправлен',
                                        button_info='sent')
 
             else:
-                if check_friend.mans_attitude == 'ban':  # пользователь заблокирован текущим пользователем, отправить никак
+                if check_friend.mans_attitude == 'ban':
                     return render_template('user_id.html', **info, title=user.name,
                                            text='Вы не можете отправить запрос этому пользователю.', button_info='add')
 
@@ -475,6 +684,7 @@ def user(id):
                 elif check_friend.mans_attitude == 'received':
                     return render_template('user_id.html', **info, title=user.name,
                                            text='Этот пользователь хочет с вами дружить!', button_info='add')
+
         elif 'sumbit' in request.form:
 
             new = ''
@@ -501,27 +711,38 @@ def user(id):
             check_friend_2.id_friends = new
             db_sess.commit()
             return redirect('/')
+
         elif 'delete' in request.form:
-            return render_template('user_id.html', **info, title=user.name, button_info='dialog', name=user.name)
+            return render_template('user_id.html', **info, title=user.name, button_info='dialog',
+                                   name=user.name)
+
         elif 'yes' in request.form:
-            first = db_sess.query(Friends).filter(Friends.first_id == id, Friends.second_id == current_user.id).first()
-            second = db_sess.query(Friends).filter(Friends.first_id == current_user.id, Friends.second_id == id).first()
+            first = db_sess.query(Friends).filter(Friends.first_id == id,
+                                                  Friends.second_id == current_user.id).first()
+            second = db_sess.query(Friends).filter(Friends.first_id == current_user.id,
+                                                   Friends.second_id == id).first()
             db_sess.delete(first)
             db_sess.delete(second)
             db_sess.commit()
             return render_template('user_id.html', **info, title=user.name,
                                    text=f'Пользователь {user.name} был удален из ваших друзей', button_info='add')
         elif 'cancel_friend' in request.form:
-            first = db_sess.query(Friends).filter(Friends.first_id == id, Friends.second_id == current_user.id).first()
-            second = db_sess.query(Friends).filter(Friends.first_id == current_user.id, Friends.second_id == id).first()
+            first = db_sess.query(Friends).filter(Friends.first_id == id,
+                                                  Friends.second_id == current_user.id).first()
+            second = db_sess.query(Friends).filter(Friends.first_id == current_user.id,
+                                                   Friends.second_id == id).first()
             db_sess.delete(first)
             db_sess.delete(second)
             db_sess.commit()
-            return render_template('user_id.html', **info, title=user.name, text='Предложение отклонено',
+            return render_template('user_id.html', **info, title=user.name,
+                                   text='Предложение отклонено',
                                    button_info='add')
+
         elif 'cancel_request' in request.form:
-            first = db_sess.query(Friends).filter(Friends.first_id == id, Friends.second_id == current_user.id).first()
-            second = db_sess.query(Friends).filter(Friends.first_id == current_user.id, Friends.second_id == id).first()
+            first = db_sess.query(Friends).filter(Friends.first_id == id,
+                                                  Friends.second_id == current_user.id).first()
+            second = db_sess.query(Friends).filter(Friends.first_id == current_user.id,
+                                                   Friends.second_id == id).first()
             db_sess.delete(first)
             db_sess.delete(second)
             db_sess.commit()
@@ -539,7 +760,8 @@ def user(id):
         except Exception:
             abort(404)
 
-    check_friend = db_sess.query(Friends).filter(Friends.first_id == current_user.id, Friends.second_id == id).first()
+    check_friend = db_sess.query(Friends).filter(Friends.first_id == current_user.id,
+                                                 Friends.second_id == id).first()
     if check_friend.mans_attitude == 'friends':
         return render_template('user_id.html', **info, title=user.name, text='', button_info='other')
     if check_friend.mans_attitude == 'sent':
@@ -549,6 +771,9 @@ def user(id):
 
 @app.route('/friends', methods=['GET', 'POST'])
 def friends():
+    if not current_user.is_authenticated:
+        abort(404)
+
     db_sess = db_session.create_session()
     friends_info = db_sess.query(Friends).filter(Friends.second_id == current_user.id,
                                                  Friends.mans_attitude == 'friends').all()
@@ -565,6 +790,9 @@ def friends():
 
 @app.route('/friend_requests')
 def friend_requests():
+    if not current_user.is_authenticated:
+        abort(404)
+
     db_sess = db_session.create_session()
     friend_requests = db_sess.query(Friends).filter(Friends.first_id == current_user.id,
                                                     Friends.mans_attitude == 'received').all()
@@ -583,7 +811,7 @@ def friend_requests():
 
 
 @app.route('/help')
-def help():
+def help_handler():
     return render_template('help.html')
 
 

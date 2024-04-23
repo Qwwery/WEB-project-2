@@ -121,6 +121,22 @@ aside ul a:hover, aside ul a:hover {
     margin-left: 35%;
 }
 
+
+.transfate{
+    max-width:100%;
+    word-wrap:break-word;
+
+}
+
+.a_news {
+    margin-left: 44.1%;
+  }
+
+.container {
+    display: flex;
+  }
+
+
 .you {
   background-color: #dadada;
   border-color: #e3dcdc;

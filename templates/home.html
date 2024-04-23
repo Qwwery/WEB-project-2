@@ -5,17 +5,45 @@
     {% if current_user.confirmed == False %}
         <h4>Привет, {{ current_user.name }}! это ваша домашняя страница!</h4>
     {% else %}
-        <h4>Привет, {{ current_user.name }}!
+        <h4 >Привет, {{ current_user.name }}!
             <img src="{{url_for('static', filename='img/galka.png')}}" style="max-width: 3.14%">
          это ваша домашняя страница!</h4>
     {% endif %}
     {% if current_user.confirmed == False %}
-        <a href="/logout" class="btn btn-warning">Выйти из аккаунта</a>
-        <button name="confirm" type="submit" class="btn btn-danger btn_sms">Подтвердить учетную запись</button><br>
-        {{text}}
-    {% else %}
-        <a href="/logout" class="btn btn-warning">Выйти из аккаунта</a><br>
+        {% if stop != 'stop' %}
+            <a class="btn btn-primary btn_sms" href="/edit_home/{{ current_user.id }}" style="color: white; margin-left: 1%">Редактировать профиль</a>
+            <button name="confirm" type="submit" class="btn btn-danger btn_sms" style="margin-left: 5%">Подтвердить учетную запись</button>
+            <a href="/logout" class="btn btn-warning" style="margin-left: 5%">Выйти из аккаунта</a><br>
+        {% else %}
+            <a class="btn btn-primary btn_sms" href="/edit_home/{{ current_user.id }}" style="color: white; margin-left: 2.06%;">Редактировать профиль</a>
+             <a href="/logout" class="btn btn-warning" style="margin-left: 37%;">Выйти из аккаунта  </a><br>
+        {% endif %}
+
+
         {{text}}<br>
+    {% else %}
+        <a class="btn btn-primary btn_sms" href="/edit_home/{{ current_user.id }}" style="color: white; margin-left: 2.06%;">Редактировать профиль</a>
+        <a href="/logout" class="btn btn-warning" style="margin-left: 37%;">Выйти из аккаунта  </a><br>
+        {{text}}
     {% endif %}
+    <hr>
+
+    <h4 align="center">Ваши новости</h4>
+    <hr>
+    {% for elem in news %}
+
+        <h5 class="transfate" align="center">{{ elem.name }}</h5>
+        <i class="transfate">{{ elem.text }}</i><br><br>
+
+        <div class="container">
+          <p style="color:white">{{ elem.data_str }}</p>
+          <a href="/edit_news/{{ elem.id }}" class="btn btn-primary btn_sms a_news">Настройки новости</a>
+        </div>
+        <hr>
+    {% endfor %}
+
+    <p>Шутка за 300: {{current_user.setup}}</p><hr>
+    <p>Псевдоним: {{current_user.domen}}</p><hr>
+
 </form>
 {% endblock %}

@@ -3,10 +3,11 @@
 {% block content %}
 
 <form action="" class="login_form" method="post">
+    <h1 align="center">Главная</h1>
     {% if current_user.is_authenticated %}
         <a href="/new_news" class="btn btn-warning">Добавить новость</a>
         {% if current_user.confirmed == False %}
-            <button name="confirm" type="submit" class="btn btn-danger btn_sms">Подтвердить учетную запись</button><br>
+            <button style="margin-left:45%" name="confirm" type="submit" class="btn btn-danger btn_sms">Подтвердить учетную запись</button><br>
             {{text}}<br>
         {% endif %}
     {% else %}
@@ -15,9 +16,9 @@
     <hr>
     {% for new in news %}
     {% if (current_user.is_authenticated and new.private == True) or (new.private == False) %}
-        <h3 align="center">{{ new.name }}</h3>
-        <a>{{ new.text }}</a>
-        <p>{{ new.data_str }}</p>
+        <h3 class="transfate" align="center">{{ new.name }}</h3>
+        <i class="transfate">{{ new.text }}</i><br><br>
+        <p style="color:white">{{ new.data_str }}</p>
         {% if current_user.is_authenticated and current_user == new.user_relationship %}
             <div>
                 <a href="/edit_news/{{ new.id }}" class="btn btn-primary btn_sms">
@@ -31,14 +32,29 @@
             </a>
         </div>
         {% endif %}
+
     {% if current_user.is_authenticated %}
         {% if current_user.id == new.author %}
-            <p align="right"><a href="home/{{ new.author }}" class="links">{{ authors[loop.index - 1] }}</a></p>
+            {% if confirm_check[loop.index - 1] == False %}
+                <p align="right"><a href="home/{{ new.author }}" class="links transfate">{{ authors[loop.index - 1] }}</a></p>
+            {% else %}
+                <h5 align="right"><a href="home/{{ new.author }}" class="links transfate">{{ authors[loop.index - 1] }}</a>
+                <img src="{{url_for('static', filename='img/galka.png')}}" style="max-width: 3.14%"></h5>
+            {% endif %}
         {% else %}
-            <p align="right"><a href="user/{{ new.author }}" class="links">{{ authors[loop.index - 1] }}</a></p>
+            {% if confirm_check[loop.index - 1] == False %}
+                <p align="right"><a href="user/{{ new.author }}" class="links transfate">{{ authors[loop.index - 1] }}</a></p>
+            {% else %}
+                <h5 align="right"><a href="user/{{ new.author }}" class="links transfate">{{ authors[loop.index - 1] }}</a>
+                <img src="{{url_for('static', filename='img/galka.png')}}" style="max-width: 3.14%"></h5>
+            {% endif %}
         {% endif %}
     {% else %}
-        <p align="right">{{ authors[loop.index - 1] }}</p>
+        {% if confirm_check[loop.index - 1] == False %}
+            <p align="right">{{ authors[loop.index - 1] }}</p>
+        {% else %}
+        <h5 align="right">{{ authors[loop.index - 1] }}<img src="{{url_for('static', filename='img/galka.png')}}" style="max-width: 3.14%"></h5>
+        {% endif %}
     {% endif %}
     <hr>
     {% endif %}

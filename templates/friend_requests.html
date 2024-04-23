@@ -2,13 +2,16 @@
 
 {% block content %}
 <form action="" class="login_form">
+    <h1 align="center">Заявки в друзья</h1>
+    <hr>
     {% if current_user.is_authenticated %}
         {% for user in users %}
-            <a href="user/{{ user.id }}" class="links">{{ user.surname }} {{user.name}}</a>
             {% if user.confirmed == True %}
-                <img src="{{url_for('static', filename='img/galka.png')}}" style="max-width: 2.14%">
+                <h5><a href="user/{{ user.id }}" class="links">{{ user.name }} {{user.surname}}</a>
+                <img src="{{url_for('static', filename='img/galka.png')}}" style="max-width: 3.14%"><h5>
+            {% else %}
+                        <a href="user/{{ user.id }}" class="links">{{ user.name }} {{user.surname}}</a>
             {% endif %}
-            <br>
             <hr>
         {% endfor %}
     {% else %}

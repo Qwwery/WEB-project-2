@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<form class="login_form" method="post">
+    <h1 align="center">Пользователи</h1>
+    <input align="center" type="text" class="form-control" placeholder="Введите имя пользователя, которого вы ищите."
+           aria-label="Username" aria-describedby="basic-addon1" id="name" name="search"><br>
+    {% for user in users %}
+        <hr>
+        {% if user.confirmed == False %}
+            <a href="user/{{ user.id }}" class="links">{{ user.name }} {{ user.surname }}</a>
+        {% else %}
+            <h5><a href="user/{{ user.id }}" class="links"> {{ user.name }} {{ user.surname }} <img src="{{url_for('static', filename='img/galka.png')}}" style="max-width: 3.14%"></a></h5>
+        {% endif %}
+        <hr>
+    {% endfor %}
+    {% if action == 'btn' %}
+        <button name="all" type="submit" class=" btn-warning  btn_all_friend btn">Убрать поиск по вводу</button>
+    {% endif %}
+</form>
+{% endblock %}
