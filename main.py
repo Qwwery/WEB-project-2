@@ -3,17 +3,6 @@ from flask import Flask, render_template, request, redirect, abort
 from sqlalchemy.orm import Session
 
 import random
-import re
-import sys
-import threading
-import time as Ti
-from flask import Flask, render_template
-from turbo_flask import Turbo
-from requests import request as rq
-from flask import jsonify, make_response
-import ast
-from time import time
-import requests
 from data.users import User  # test 2
 from data.news import News
 from data import db_session
@@ -75,6 +64,7 @@ thread_lock = Lock()
 login_manager = LoginManager()
 login_manager.init_app(app)
 
+
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html')
@@ -83,6 +73,7 @@ def page_not_found(e):
 @app.errorhandler(401)
 def page_not_found(e):
     return render_template('404.html')
+
 
 @socketio.on('changing_layout')
 def on_changing_layout(data):
@@ -103,13 +94,13 @@ def message(data):
     else:
         return
     user = db_sess.query(User).filter(User.id == data['id_user']).first().name
-    emit('my_response', {'user_name': user, 'message': data['message'], 'user_id': data['id_user']}, to=data['id_friends'])
+    emit('my_response', {'user_name': user, 'message': data['message'], 'user_id': data['id_user']},
+         to=data['id_friends'])
 
 
 @socketio.event
 def my_event(data):
     join_room(data['id_friends'])
-
 
 
 @app.route('/all_users', methods=['GET', 'POST'])
@@ -137,8 +128,9 @@ def messages():
     db_sess = db_session.create_session()
     friends = db_sess.query(Friends).filter(Friends.first_id == current_user.id,
                                             Friends.second_id == request.args.get('before')).first().id_friends
-    messages = db_sess.query(Messages).filter(((Messages.author == current_user.id) & (Messages.before == request.args.get('before')) | (
-            (Messages.author == request.args.get('before')) & (Messages.before == current_user.id)))).all()
+    messages = db_sess.query(Messages).filter(
+        ((Messages.author == current_user.id) & (Messages.before == request.args.get('before')) | (
+                (Messages.author == request.args.get('before')) & (Messages.before == current_user.id)))).all()
 
     result_messages = []
     for message in messages:
@@ -816,6 +808,7 @@ def help_handler():
 
 
 def main():
+    print('http://127.0.0.1:5000/')
     socketio.run(app)
 
 

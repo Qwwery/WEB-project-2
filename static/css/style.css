@@ -153,6 +153,14 @@ aside ul a:hover, aside ul a:hover {
   height: 200px;
   border: 5px solid black;
 }
+
+.container_news{
+    display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: stretch;
+}
+
 .fixed {
   flex: 0 0 200px;
   background-color: #FF9999;
