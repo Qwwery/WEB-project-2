@@ -44,12 +44,22 @@ from flask_socketio import SocketIO, emit, join_room, leave_room, \
 
 ALF = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V',
        'W', 'X', 'Y', 'Z']
-# app = Flask(__name__)
-# app.config['SECRET_KEY'] = 'sdasdgaWFEKjwEKHFNLk;jnFKLJNpj`1`p142QEW:jqwegpoqjergplqwejg;lqeb'
-# db_session.global_init("db/db.db")
-# serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
-# login_manager = LoginManager()
-# login_manager.init_app(app)
+trans_copy = {
+    'й': 'q', 'ц': 'w', 'у': 'e', 'к': 'r', 'е': 't', 'н': 'y', 'г': 'u',
+    'ш': 'i', 'щ': 'o', 'з': 'p', 'х': '[', 'ъ': ']', 'ф': 'a', 'ы': 's',
+    'в': 'd', 'а': 'f', 'п': 'g', 'р': 'h', 'о': 'j', 'л': 'k', 'д': 'l',
+    'ж': ';', 'э': "'", 'я': 'z', 'ч': 'x', 'с': 'c', 'м': 'v', 'и': 'b',
+    'т': 'n', 'ь': 'm', 'б': ',', 'ю': '.', 'Й': 'Q', 'Ц': 'W', 'У': 'E',
+    'К': 'R', 'Е': 'T', 'Н': 'Y', 'Г': 'U', 'Ш': 'I', 'Щ': 'O', 'З': 'P',
+    'Х': '{', 'Ъ': '}', 'Ф': 'A', 'Ы': 'S', 'В': 'D', 'А': 'F', 'П': 'G',
+    'Р': 'H', 'О': 'J', 'Л': 'K', 'Д': 'L', 'Ж': ':', 'Э': '"', 'Я': 'Z',
+    'Ч': 'X', 'С': 'C', 'М': 'V', 'И': 'B', 'Т': 'N', 'Ь': 'M', 'Б': '<',
+    'Ю': '>', '"': '@', '№': '#', ';': '$', ':': '^', '?': '&', '.': '/',
+    ',': '?'
+}
+trans = trans_copy.copy()
+for key, value in trans_copy.items():
+    trans[value] = key
 async_mode = None
 
 app = Flask(__name__)
@@ -63,6 +73,13 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 
 
+@socketio.on('changing_layout')
+def on_changing_layout(data):
+    s = data['message']
+    s = s.translate(s.maketrans(trans))
+    emit('changing_layout_to', {'s': s})
+
+
 @socketio.on('run_new_message')
 def message(data):
     db_sess = db_session.create_session()
@@ -74,7 +91,8 @@ def message(data):
         db_sess.commit()
     else:
         return
-    emit('my_response', {'data': data['id_user'] + ': ' + data['message']}, to=data['id_friends'])
+    user = db_sess.query(User).filter(User.id == data['id_user']).first().name
+    emit('my_response', {'user_name': user, 'message': data['message'], 'user_id': data['id_user']}, to=data['id_friends'])
 
 
 @socketio.event
@@ -93,12 +111,15 @@ def messages():
     result_messages = []
     for message in messages:
         who = db_sess.query(User).filter(User.id == message.author).first().name
-        result_messages.append({'author': who, 'message': message.message})
+        result_messages.append({'author': who, 'message': message.message, 'id': message.author})
 
     info = {
         'async_mode': socketio.async_mode,
         'id_friends': friends,
-        'messages': messages
+        'messages': result_messages,
+        'u_friends': request.args.get('before'),
+        'who': who,
+        'title': db_sess.query(User).filter(User.id == request.args.get('before')).first().name
     }
 
     return render_template('sms.html', **info)
