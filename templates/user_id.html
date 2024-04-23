@@ -27,11 +27,11 @@
                 <button name="sumbit" type="submit" class="btn btn-primary btn_sms">Принять</button>
                 <button name="cancel_friend" type="submit" class="btn btn-danger btn_sms">Отклонить</button><br>
             {% elif button_info == 'add' %}
-               <button name="add_friend" type="submit" class="btn btn-primary btn_sms">Добавить в друзья</button>
+               <button name="add_friend" type="submit" class="btn btn-primary btn_sms">Отправить запрос</button>
             {% elif button_info == 'sent' %}
                <button name="cancel_request" type="submit" class="btn btn-danger btn_sms">Отменить запрос</button>
             {% elif button_info == 'other' %}
-                <a class="btn btn-primary" href="/messages?author={{ current_user.id }}&before={{ user.id }}" style="color: white">Перейти к личным сообщениям</a>
+                <a class="btn btn-primary" href="/messages?before={{ user.id }}" style="color: white">Перейти к личным сообщениям</a>
                 <button name="delete" type="submit" class="btn btn-danger">Удалить из друзей</button><br>
             {% elif button_info == 'dialog' %}
                 <h3>Вы уверены, что хотите удалить пользователя {{ name }}?</h3>

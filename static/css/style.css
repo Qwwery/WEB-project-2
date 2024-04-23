@@ -136,3 +136,28 @@ aside ul a:hover, aside ul a:hover {
     display: flex;
   }
 
+
+.you {
+  background-color: #dadada;
+  border-color: #e3dcdc;
+  border-radius: 5px;
+  padding: 10px;
+  margin: 10px 0;
+}
+
+.container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: stretch;
+  height: 200px;
+  border: 5px solid black;
+}
+.fixed {
+  flex: 0 0 200px;
+  background-color: #FF9999;
+}
+.rubbery {
+  flex: 1 1 25%;
+  background-color: #9999FF;
+}
