@@ -4,9 +4,11 @@ from sqlalchemy.orm import Session
 import ast
 from time import time
 import requests
-from data.users import User  # test 2
-from data.news import News
-from data import db_session
+import os
+import random
+from models.users import User  # test 2
+from models.news import News
+from models import db_session
 from flask_login import LoginManager, login_user, current_user, logout_user, login_required
 from forms.login import LoginForm
 from forms.reg_form import RegForm
@@ -47,7 +49,6 @@ login_manager.init_app(app)
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html')
-
 
 @app.errorhandler(401)
 def page_not_found(e):
@@ -315,6 +316,9 @@ def edit_home(id):
         form.setup_see.data = user.setup_see
         form.domen.data = user.domen
 
+    if request.method == 'POST' and 'ava' in request.form:
+        return redirect('/ava')
+
     if form.validate_on_submit():
         age = form.age.data
         if age < 1 or age > 150:
@@ -378,6 +382,33 @@ def edit_home(id):
         return redirect(f'/home/{current_user.id}')
 
     return render_template('user_edit.html', title='Редактирование профиля', form=form, action='')
+
+
+@app.route("/ava", methods=['GET', 'POST'])
+def her():
+    if request.method == 'POST':
+        # Получаем имя файла
+        f = request.files['file']
+
+        # Проверяем, был ли выбран файл
+        if f.filename == '':
+            return render_template('her.html', message='нет файла')
+
+        # Создаем уникальное имя файла
+        new_file = f'{current_user.id}.png'
+        f = request.files['file']
+
+        check = f.filename
+        check = check.split('.')
+        if check[-1] not in ['png', 'jpg']:
+            return render_template('her.html', message='поддерживаются только файлы с '
+                                                       'расширением png и jpg')
+
+        with open(f'static/img/{new_file}', 'wb') as file:
+            file.write(f.read())
+        return render_template('home.html')
+
+    return render_template('her.html')
 
 
 @app.route('/confirm/<confirmation_code>')
@@ -801,3 +832,6 @@ def help_handler():
 
 if __name__ == '__main__':
     main()
+
+# xTunnel -k 04554c4c74204ea984c2d743e011edec
+# xTunnel 5000

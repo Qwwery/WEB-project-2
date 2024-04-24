@@ -136,3 +136,50 @@ aside ul a:hover, aside ul a:hover {
     display: flex;
   }
 
+
+.you {
+  background-color: #dadada;
+  border-color: #e3dcdc;
+  border-radius: 5px;
+  padding: 10px;
+  margin: 10px 0;
+}
+
+.container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: stretch;
+  height: 200px;
+  border: 5px solid black;
+}
+
+.container_news{
+    display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: stretch;
+}
+
+.fixed {
+  flex: 0 0 200px;
+  background-color: #FF9999;
+}
+.rubbery {
+  flex: 1 1 25%;
+  background-color: #9999FF;
+}
+
+
+.ava{
+        display: block;
+        font-size: 15px;
+        font-family: "trebuchet ms", sans-serif;
+        font-weight: bold;
+        text-indent: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+    }
+
