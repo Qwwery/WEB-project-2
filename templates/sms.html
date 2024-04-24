@@ -6,16 +6,29 @@
 <h1 class="h1_sms"> Чат {{name_chat}}</h1>
 <div class="scrole_sms frame_sms" id="message">
     {% for message in messages %}
-    <p>{{ message.name }}: {{ message.text }}</p>
+    <div class="you" style="word-break: break-all"><a href="user/{{ message.id_user }}" style="color: black"><b>{{
+        message.name }}</b></a><br> {{ message.text }}
+    </div>
     {% endfor %}
 </div>
 <form action="#" method="POST" id="post_message" class="sms_login_form center_label">
-    <input type="text" autofocus="autofocus" name="new_message" id="new_message" placeholder="Написать сообщение" style="word-wrap: break-word;
-    max-width: 90%;
-    word-break: break-all;
-    width: 90%" onkeyup='saveValue(this);'>
-    <input type="image" src="https://cdn-icons-png.flaticon.com/512/2550/2550207.png"
-           style="width: 23px; height: 20px" onclick="delValue()">
+    {% if trans_gey_gey_gey %}
+        <input type="text" autofocus="autofocus" name="new_message" id="new_message" placeholder="Написать сообщение"
+               style="word-wrap: break-word;
+        max-width: 90%;
+        word-break: break-all;
+        width: 90%" onkeyup='saveValue(this);' value="{{trans_gey_gey_gey}}">
+        <input type="image" src="https://cdn-icons-png.flaticon.com/512/2550/2550207.png"
+               style="width: 23px; height: 20px" onclick="delValue()">
+    {% else %}
+        <input type="text" autofocus="autofocus" name="new_message" id="new_message" placeholder="Написать сообщение"
+               style="word-wrap: break-word;
+        max-width: 90%;
+        word-break: break-all;
+        width: 90%" onkeyup='saveValue(this);'>
+        <input type="image" src="https://cdn-icons-png.flaticon.com/512/2550/2550207.png"
+               style="width: 23px; height: 20px" onclick="delValue()">
+    {% endif %}
 </form>
 <form class="sms_login_form center_label" method="post" autocomplete="off">
     <button name="btn_translate_eng" type="submit" class="btn btn-success btn_sms">На английский</button>
@@ -31,11 +44,12 @@
 </script>
 
 <script>
+
     setTimeout(function () {
         location.reload(true);
         document.querySelector(".new_message").focus()
 
-    }, 3000);
+    }, 6000);
 
 
     document.getElementById("new_message").value = getSavedValue("new_message");

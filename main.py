@@ -36,6 +36,21 @@ app.config['SECRET_KEY'] = 'ebfqwejg;asdlp1LJNpjqwfffaffaWFEKjwEKHFNLk;fwfbjnl42
 db_session.global_init("db/db.db")
 
 
+translate = t = {
+        'й': 'q', 'ц': 'w', 'у': 'e', 'к': 'r', 'е': 't', 'н': 'y', 'г': 'u',
+        'ш': 'i', 'щ': 'o', 'з': 'p', 'х': '[', 'ъ': ']', 'ф': 'a', 'ы': 's',
+        'в': 'd', 'а': 'f', 'п': 'g', 'р': 'h', 'о': 'j', 'л': 'k', 'д': 'l',
+        'ж': ';', 'э': "'", 'я': 'z', 'ч': 'x', 'с': 'c', 'м': 'v', 'и': 'b',
+        'т': 'n', 'ь': 'm', 'б': ',', 'ю': '.', 'Й': 'Q', 'Ц': 'W', 'У': 'E',
+        'К': 'R', 'Е': 'T', 'Н': 'Y', 'Г': 'U', 'Ш': 'I', 'Щ': 'O', 'З': 'P',
+        'Х': '{', 'Ъ': '}', 'Ф': 'A', 'Ы': 'S', 'В': 'D', 'А': 'F', 'П': 'G',
+        'Р': 'H', 'О': 'J', 'Л': 'K', 'Д': 'L', 'Ж': ':', 'Э': '"', 'Я': 'Z',
+        'Ч': 'X', 'С': 'C', 'М': 'V', 'И': 'B', 'Т': 'N', 'Ь': 'M', 'Б': '<',
+        'Ю': '>', '"': '@', '№': '#', ';': '$', ':': '^', '?': '&', '.': '/',
+        ',': '?'
+    }
+
+
 def main():
     db_session.global_init("db/db.db")
     app.run(debug=True)
@@ -138,21 +153,23 @@ def get_message():
             user = db_sess.query(User).filter(User.id == data['id_user']).first().name
             return redirect(f'/messages?before={before}')
         elif 'btn_translate_eng' in request.form:
-            form.text.data = make_translate(form.text.data, rus_to_eng)
+            result = make_translate(data['new_message'], rus_to_eng)
             result_message = []
             for message in messages:
                 result_message.append(ast.literal_eval(message.js_message))
             info = {
-                'messages': result_message
+                'messages': result_message,
+                'trans_gey_gey_gey': result
             }
-            return render_template('sms.html', **info, form=form)
+            return render_template('sms.html', **info)
         elif 'btn_translate_russ' in request.form:
-            form.text.data = make_translate(form.text.data, eng_to_rus)
+            result = make_translate(data['new_message'], eng_to_rus)
             result_message = []
             for message in messages:
                 result_message.append(ast.literal_eval(message.js_message))
             info = {
-                'messages': result_message
+                'messages': result_message,
+                'trans_gey_gey_gey': result
             }
             return render_template('sms.html', **info, form=form)
 
@@ -161,7 +178,8 @@ def get_message():
             text = request.form['new_message']
             response = requests.post(url="http://127.0.0.1:5000/send", json={"name": name, "text": text})
 
-            new_message = Messages(author=author, before=before, js_message=str({"name": name, "text": text}))
+            new_message = Messages(author=author, before=before, js_message=str({"name": name, "text": text, "id_user": current_user.id}))
+
             db_sess.add(new_message)
             db_sess.commit()
             return redirect(f'/messages?author={author}&before={before}')
