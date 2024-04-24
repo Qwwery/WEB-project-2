@@ -1,12 +1,12 @@
-
-import socketio.packet
 from flask import Flask, render_template, request, redirect, abort
 from sqlalchemy.orm import Session
 
-import random
-from models.users import User  # test 2
-from models.news import News
-from models import db_session
+import ast
+from time import time
+import requests
+from data.users import User  # test 2
+from data.news import News
+from data import db_session
 from flask_login import LoginManager, login_user, current_user, logout_user, login_required
 from forms.login import LoginForm
 from forms.reg_form import RegForm
@@ -15,8 +15,8 @@ from forms.sms_form import SmsForm
 from forms.edit_news_form import EditNewsForm
 from forms.user_edit import UserEditForm
 from translate import eng_to_rus, rus_to_eng, make_translate
-from models.friends import Friends
-from models.messages import Messages
+from data.friends import Friends
+from data.messages import Messages
 from time_news import get_str_time  # deleted
 import datetime
 from check_correct_data_input import check_correct_email, check_correct_password, check_correct_domen_user
@@ -28,40 +28,18 @@ import logging
 from itsdangerous import URLSafeTimedSerializer
 import smtplib
 from email.mime.text import MIMEText
-import sched
-from threading import Lock
-from flask import Flask, render_template, session, request, \
-    copy_current_request_context
-from flask_socketio import SocketIO, emit, join_room, leave_room, \
-    close_room, rooms, disconnect
-
-ALF = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V',
-       'W', 'X', 'Y', 'Z']
-trans_copy = {
-    'й': 'q', 'ц': 'w', 'у': 'e', 'к': 'r', 'е': 't', 'н': 'y', 'г': 'u',
-    'ш': 'i', 'щ': 'o', 'з': 'p', 'х': '[', 'ъ': ']', 'ф': 'a', 'ы': 's',
-    'в': 'd', 'а': 'f', 'п': 'g', 'р': 'h', 'о': 'j', 'л': 'k', 'д': 'l',
-    'ж': ';', 'э': "'", 'я': 'z', 'ч': 'x', 'с': 'c', 'м': 'v', 'и': 'b',
-    'т': 'n', 'ь': 'm', 'б': ',', 'ю': '.', 'Й': 'Q', 'Ц': 'W', 'У': 'E',
-    'К': 'R', 'Е': 'T', 'Н': 'Y', 'Г': 'U', 'Ш': 'I', 'Щ': 'O', 'З': 'P',
-    'Х': '{', 'Ъ': '}', 'Ф': 'A', 'Ы': 'S', 'В': 'D', 'А': 'F', 'П': 'G',
-    'Р': 'H', 'О': 'J', 'Л': 'K', 'Д': 'L', 'Ж': ':', 'Э': '"', 'Я': 'Z',
-    'Ч': 'X', 'С': 'C', 'М': 'V', 'И': 'B', 'Т': 'N', 'Ь': 'M', 'Б': '<',
-    'Ю': '>', '"': '@', '№': '#', ';': '$', ':': '^', '?': '&', '.': '/',
-    ',': '?'
-}
-trans = trans_copy.copy()
-for key, value in trans_copy.items():
-    trans[value] = key
-async_mode = None
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'ebfqwejg;asdlp1LJNpjqwfffaffaWFEKjwEKHFNLk;fwfbjnl42QEW:jFKqeb'
 db_session.global_init("db/db.db")
+
+
+def main():
+    db_session.global_init("db/db.db")
+    app.run(debug=True)
+
+
 serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
-socketio = SocketIO(app, async_mode=async_mode)
-thread = None
-thread_lock = Lock()
 login_manager = LoginManager()
 login_manager.init_app(app)
 
@@ -76,32 +54,28 @@ def page_not_found(e):
     return render_template('404.html')
 
 
-@socketio.on('changing_layout')
-def on_changing_layout(data):
-    s = data['message']
-    s = s.translate(s.maketrans(trans))
-    emit('changing_layout_to', {'s': s})
+database = []
 
 
-@socketio.on('run_new_message')
-def message(data):
-    db_sess = db_session.create_session()
-    before = db_sess.query(Friends).filter(Friends.id_friends == data['id_friends'],
-                                           Friends.first_id == data['id_user']).first().second_id
-    if data['message']:
-        message = Messages(author=int(data['id_user']), message=data['message'], before=int(before))
-        db_sess.add(message)
-        db_sess.commit()
-    else:
-        return
-    user = db_sess.query(User).filter(User.id == data['id_user']).first().name
-    emit('my_response', {'user_name': user, 'message': data['message'], 'user_id': data['id_user']},
-         to=data['id_friends'])
+@app.route('/send', methods=['POST'])
+def send():
+    data = request.json
 
+    name = data['name']
+    text = data['text']
 
-@socketio.event
-def my_event(data):
-    join_room(data['id_friends'])
+    if not isinstance(data, dict) or 'name' not in data or 'text' not in data:
+        return abort(404)
+
+    message = {
+        'name': name,
+        'text': text,
+        'time': time()
+    }
+
+    database.append(message)
+
+    return {'ok': True}
 
 
 @app.route('/all_users', methods=['GET', 'POST'])
@@ -118,46 +92,87 @@ def all_users():
     return render_template('all_users.html', users=users, action='')
 
 
-# @login_required
-# @app.route(f'/messages', methods=['GET', 'POST'])
-# def get_message():
-#     if not current_user.is_authenticated:
-#         return abort(404)
+@login_required
+@app.route('/messages', methods=['GET', 'POST'])
+def get_message():
+    if not current_user.is_authenticated:
+        return abort(404)
 
-@app.route('/messages')
-def messages():
     db_sess = db_session.create_session()
-    friends = db_sess.query(Friends).filter(Friends.first_id == current_user.id,
-                                            Friends.second_id == request.args.get('before')).first().id_friends
-    messages = db_sess.query(Messages).filter(
-        ((Messages.author == current_user.id) & (Messages.before == request.args.get('before')) | (
-                (Messages.author == request.args.get('before')) & (Messages.before == current_user.id)))).all()
+    data = request.args
 
-    result_messages = []
-    for message in messages:
-        who = db_sess.query(User).filter(User.id == message.author).first().name
-        result_messages.append({'author': who, 'message': message.message, 'id': message.author})
+    try:
+        author = data['author']
+        before = data['before']
+        assert int(current_user.id) == int(author)
+        friends = db_sess.query(Friends).filter(Friends.first_id == author, Friends.second_id == before).first()
+        assert friends
 
-    info = {
-        'async_mode': socketio.async_mode,
-        'id_friends': friends,
-        'messages': result_messages,
-        'u_friends': request.args.get('before'),
-        'who': request.args.get('before'),
-        'title': db_sess.query(User).filter(User.id == request.args.get('before')).first().name
-    }
+    except Exception:
+        return abort(404)
 
-    return render_template('sms.html', **info)
+    messages = db_sess.query(Messages).filter(((Messages.author == author) & (Messages.before == before)) | (
+            (Messages.author == before) & (Messages.before == author))).all()
 
+    if messages is None:
+        if friends.mans_attitude == 'friends':
+            messages = Messages(author=author, before=before, js_message='{}')
+            db_sess.add(messages)
+            db_sess.commit()
+        else:
+            abort(404)
 
-@socketio.on('add_message')
-def on_add_message():
-    emit('my_response', {'data': 'test ' * 100})
+    form = SmsForm()
+    if request.method == 'POST':
+        if 'btn_submit' in request.form:
+            db_sess = db_session.create_session()
+            before = db_sess.query(Friends).filter(Friends.id_friends == data['id_friends'],
+                                                   Friends.first_id == data['id_user']).first().second_id
+            if data['message']:
+                message = Messages(author=int(data['id_user']), message=data['message'], before=int(before))
+                db_sess.add(message)
+                db_sess.commit()
+            else:
+                return
+            user = db_sess.query(User).filter(User.id == data['id_user']).first().name
+            return redirect(f'/messages?before={before}')
+        elif 'btn_translate_eng' in request.form:
+            form.text.data = make_translate(form.text.data, rus_to_eng)
+            result_message = []
+            for message in messages:
+                result_message.append(ast.literal_eval(message.js_message))
+            info = {
+                'messages': result_message
+            }
+            return render_template('sms.html', **info, form=form)
+        elif 'btn_translate_russ' in request.form:
+            form.text.data = make_translate(form.text.data, eng_to_rus)
+            result_message = []
+            for message in messages:
+                result_message.append(ast.literal_eval(message.js_message))
+            info = {
+                'messages': result_message
+            }
+            return render_template('sms.html', **info, form=form)
 
+        else:
+            name = current_user.name
+            text = request.form['new_message']
+            response = requests.post(url="http://127.0.0.1:5000/send", json={"name": name, "text": text})
 
-@socketio.event
-def my_ping():
-    emit('my_pong')
+            new_message = Messages(author=author, before=before, js_message=str({"name": name, "text": text}))
+            db_sess.add(new_message)
+            db_sess.commit()
+            return redirect(f'/messages?author={author}&before={before}')
+
+    elif request.method == 'GET':
+        result_message = []
+        for message in messages:
+            result_message.append(ast.literal_eval(message.js_message))
+        info = {
+            'messages': result_message
+        }
+        return render_template('sms.html', **info, form=form)
 
 
 @app.route('/secret_update', methods=["POST"])
@@ -174,6 +189,8 @@ def webhook():
 @login_manager.user_loader
 def load_user(user_id):
     db_sess = db_session.create_session()
+
+    # return db_sess.query(User).get(user_id)
     return db_sess.get(User, user_id)
 
 
@@ -214,13 +231,10 @@ def first():
     info = {
         'news': news,
         'authors': authors,
-        'confirm_check': confirmed_check,
-        'title': 'NaSvyazi',
-        'text': text,
-        'action': ''
+        'confirm_check': confirmed_check
     }
 
-    return render_template('news.html', **info)
+    return render_template('news.html', **info, title='NaSvyazi', text=text, action='')
 
 
 @app.route('/edit_news/<int:id>', methods=['GET', 'POST'])
@@ -349,7 +363,7 @@ def edit_home(id):
                                        form=form,
                                        title='Редактирование профиля')
 
-        if form.update_setup.data:
+        if form.update_setup.data and form.update_setup_confirm.data:
             user.setup = get_setup()
 
         user.name = name
@@ -380,7 +394,7 @@ def confirm(confirmation_code):
             user.confirmed = True
             db_sess.commit()
 
-            return render_template('home.html', text='Вы подтвердили вашу учетную запись', stop='stop')
+            return render_template('home.html', text='Вы подтвердили вашу учетную запись')
         else:
             return render_template('confirmed_sms.html', title='NaSvyazi', text='Неизвестная ошибка')
     except Exception as text:
@@ -626,12 +640,6 @@ def user(id):
     db_sess = db_session.create_session()
     user = db_sess.query(User).filter(User.id == id).first()
 
-    if not user:
-        return abort(404)
-
-    if user.id == current_user.id:
-        return redirect(f'/home/{current_user.id}')
-
     info = {
         'user': user
     }
@@ -679,29 +687,12 @@ def user(id):
                                            text='Этот пользователь хочет с вами дружить!', button_info='add')
 
         elif 'sumbit' in request.form:
-
-            new = ''
-            for i in range(100):
-                random.shuffle(ALF)
-                new += ALF[0]
-
-            while True:
-                if db_sess.query(Friends).filter(Friends.id_friends == new).first():
-                    new = ''
-                    for i in range(100):
-                        random.shuffle(ALF)
-                        new += ALF[0]
-                else:
-                    break
-
             check_friend = db_sess.query(Friends).filter(Friends.first_id == current_user.id,
                                                          Friends.second_id == id).first()
             check_friend.mans_attitude = 'friends'
-            check_friend.id_friends = new
             check_friend_2 = db_sess.query(Friends).filter(Friends.first_id == id,
                                                            Friends.second_id == current_user.id).first()
             check_friend_2.mans_attitude = 'friends'
-            check_friend_2.id_friends = new
             db_sess.commit()
             return redirect('/')
 
@@ -808,11 +799,5 @@ def help_handler():
     return render_template('help.html')
 
 
-def main():
-    print('http://127.0.0.1:5000/')
-    socketio.run(app)
-
-
 if __name__ == '__main__':
-    db_session.global_init("db/db.db")
     main()
