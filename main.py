@@ -1,7 +1,7 @@
 import socketio.packet
 from flask import Flask, render_template, request, redirect, abort
 from sqlalchemy.orm import Session
-
+import os
 import random
 from data.users import User  # test 2
 from data.news import News
@@ -65,14 +65,14 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 
 
-@app.errorhandler(404)
-def page_not_found(e):
-    return render_template('404.html')
-
-
-@app.errorhandler(401)
-def page_not_found(e):
-    return render_template('404.html')
+# @app.errorhandler(404)
+# def page_not_found(e):
+#     return render_template('404.html')
+#
+#
+# @app.errorhandler(401)
+# def page_not_found(e):
+#     return render_template('404.html')
 
 
 @socketio.on('changing_layout')
@@ -300,6 +300,9 @@ def edit_home(id):
         form.setup_see.data = user.setup_see
         form.domen.data = user.domen
 
+    if request.method == 'POST' and 'ava' in request.form:
+        return redirect('/ava')
+
     if form.validate_on_submit():
         age = form.age.data
         if age < 1 or age > 150:
@@ -363,6 +366,33 @@ def edit_home(id):
         return redirect(f'/home/{current_user.id}')
 
     return render_template('user_edit.html', title='Редактирование профиля', form=form, action='')
+
+
+@app.route("/ava", methods=['GET', 'POST'])
+def her():
+    if request.method == 'POST':
+        # Получаем имя файла
+        f = request.files['file']
+
+        # Проверяем, был ли выбран файл
+        if f.filename == '':
+            return render_template('her.html', message='нет файла')
+
+        # Создаем уникальное имя файла
+        new_file = f'{current_user.id}.png'
+        f = request.files['file']
+
+        check = f.filename
+        check = check.split('.')
+        if check[-1] not in ['png', 'jpg']:
+            return render_template('her.html', message='поддерживаются только файлы с '
+                                                       'расширением png и jpg')
+
+        with open(f'static/img/{new_file}', 'wb') as file:
+            file.write(f.read())
+        return render_template('home.html')
+
+    return render_template('her.html')
 
 
 @app.route('/confirm/<confirmation_code>')
@@ -815,3 +845,6 @@ def main():
 if __name__ == '__main__':
     db_session.global_init("db/db.db")
     main()
+
+# xTunnel -k 04554c4c74204ea984c2d743e011edec
+# xTunnel 5000

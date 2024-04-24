@@ -169,3 +169,18 @@ aside ul a:hover, aside ul a:hover {
   flex: 1 1 25%;
   background-color: #9999FF;
 }
+
+
+.ava{
+    display: flex
+    text-align: justify;
+    font-size: 15px;
+    font-family: "trebuchet ms",
+    sans-serif;
+    font-weight: bold;
+    text-indent: 0;
+    white-space: nowrap; /* Запрещаем перенос строк */
+    overflow: hidden; /* Обрезаем все, что не помещается в область */
+    text-overflow: ellipsis;
+    max-width: 90%
+}

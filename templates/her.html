@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <form method="post" action="" enctype="multipart/form-data" class="login_form">
+        <h1 align="center">Изменение аватарки</h1><hr>
+        <div class="ava">
+            <input style="display: block;" accept=".png,.jpg" type="file" name="file" required><br>
+            <input type="submit" value="Загрузить файл"><br>
+        </div>
+        <br>
+        <div class="ava">
+            <p>{{  message }}</p>
+        </div>
+
+    </form>
+
+{% endblock %}
