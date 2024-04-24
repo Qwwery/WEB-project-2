@@ -10,7 +10,7 @@
     {% endfor %}
 </div>
 <form action="#" method="POST" id="post_message" class="sms_login_form center_label">
-    <input type="text" name="new_message" id="new_message" placeholder="Написать сообщение" style="word-wrap: break-word;
+    <input type="text" autofocus="autofocus" name="new_message" id="new_message" placeholder="Написать сообщение" style="word-wrap: break-word;
     max-width: 90%;
     word-break: break-all;
     width: 90%" onkeyup='saveValue(this);'>
@@ -33,7 +33,7 @@
 <script>
     setTimeout(function () {
         location.reload(true);
-        document.querySelector(".post_message").focus()
+        document.querySelector(".new_message").focus()
 
     }, 3000);
 
