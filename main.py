@@ -1,11 +1,12 @@
+
 import socketio.packet
 from flask import Flask, render_template, request, redirect, abort
 from sqlalchemy.orm import Session
 import os
 import random
-from data.users import User  # test 2
-from data.news import News
-from data import db_session
+from models.users import User  # test 2
+from models.news import News
+from models import db_session
 from flask_login import LoginManager, login_user, current_user, logout_user, login_required
 from forms.login import LoginForm
 from forms.reg_form import RegForm
@@ -14,8 +15,8 @@ from forms.sms_form import SmsForm
 from forms.edit_news_form import EditNewsForm
 from forms.user_edit import UserEditForm
 from translate import eng_to_rus, rus_to_eng, make_translate
-from data.friends import Friends
-from data.messages import Messages
+from models.friends import Friends
+from models.messages import Messages
 from time_news import get_str_time  # deleted
 import datetime
 from check_correct_data_input import check_correct_email, check_correct_password, check_correct_domen_user
