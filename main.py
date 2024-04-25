@@ -273,14 +273,13 @@ def first():
                            b64_image=encoding_image)
             db_sess.add(image)
             db_sess.commit()
-
     result_image = []
     for elem in news:
         image = db_sess.query(Images).filter(Images.id == elem.id).first().b64_image
         encoded_string = str(image)
         encoded_string = encoded_string.replace("b'", '').replace("'", '')
         result_image.append(encoded_string)
-
+    result_image = result_image[::-1]
     return render_template('news.html', **info, title='NaSvyazi', text=text, action='',
                            image=result_image)
 
