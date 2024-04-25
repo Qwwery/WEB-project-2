@@ -35,20 +35,19 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'ebfqwejg;asdlp1LJNpjqwfffaffaWFEKjwEKHFNLk;fwfbjnl42QEW:jFKqeb'
 db_session.global_init("db/db.db")
 
-
 translate = t = {
-        'й': 'q', 'ц': 'w', 'у': 'e', 'к': 'r', 'е': 't', 'н': 'y', 'г': 'u',
-        'ш': 'i', 'щ': 'o', 'з': 'p', 'х': '[', 'ъ': ']', 'ф': 'a', 'ы': 's',
-        'в': 'd', 'а': 'f', 'п': 'g', 'р': 'h', 'о': 'j', 'л': 'k', 'д': 'l',
-        'ж': ';', 'э': "'", 'я': 'z', 'ч': 'x', 'с': 'c', 'м': 'v', 'и': 'b',
-        'т': 'n', 'ь': 'm', 'б': ',', 'ю': '.', 'Й': 'Q', 'Ц': 'W', 'У': 'E',
-        'К': 'R', 'Е': 'T', 'Н': 'Y', 'Г': 'U', 'Ш': 'I', 'Щ': 'O', 'З': 'P',
-        'Х': '{', 'Ъ': '}', 'Ф': 'A', 'Ы': 'S', 'В': 'D', 'А': 'F', 'П': 'G',
-        'Р': 'H', 'О': 'J', 'Л': 'K', 'Д': 'L', 'Ж': ':', 'Э': '"', 'Я': 'Z',
-        'Ч': 'X', 'С': 'C', 'М': 'V', 'И': 'B', 'Т': 'N', 'Ь': 'M', 'Б': '<',
-        'Ю': '>', '"': '@', '№': '#', ';': '$', ':': '^', '?': '&', '.': '/',
-        ',': '?'
-    }
+    'й': 'q', 'ц': 'w', 'у': 'e', 'к': 'r', 'е': 't', 'н': 'y', 'г': 'u',
+    'ш': 'i', 'щ': 'o', 'з': 'p', 'х': '[', 'ъ': ']', 'ф': 'a', 'ы': 's',
+    'в': 'd', 'а': 'f', 'п': 'g', 'р': 'h', 'о': 'j', 'л': 'k', 'д': 'l',
+    'ж': ';', 'э': "'", 'я': 'z', 'ч': 'x', 'с': 'c', 'м': 'v', 'и': 'b',
+    'т': 'n', 'ь': 'm', 'б': ',', 'ю': '.', 'Й': 'Q', 'Ц': 'W', 'У': 'E',
+    'К': 'R', 'Е': 'T', 'Н': 'Y', 'Г': 'U', 'Ш': 'I', 'Щ': 'O', 'З': 'P',
+    'Х': '{', 'Ъ': '}', 'Ф': 'A', 'Ы': 'S', 'В': 'D', 'А': 'F', 'П': 'G',
+    'Р': 'H', 'О': 'J', 'Л': 'K', 'Д': 'L', 'Ж': ':', 'Э': '"', 'Я': 'Z',
+    'Ч': 'X', 'С': 'C', 'М': 'V', 'И': 'B', 'Т': 'N', 'Ь': 'M', 'Б': '<',
+    'Ю': '>', '"': '@', '№': '#', ';': '$', ':': '^', '?': '&', '.': '/',
+    ',': '?'
+}
 
 
 def main():
@@ -64,6 +63,7 @@ login_manager.init_app(app)
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html')
+
 
 @app.errorhandler(401)
 def page_not_found(e):
@@ -182,7 +182,8 @@ def get_message():
             text = request.form['new_message']
             response = requests.post(url="http://127.0.0.1:5000/send", json={"name": name, "text": text})
 
-            new_message = Messages(author=author, before=before, js_message=str({"name": name, "text": text, "id_user": current_user.id}))
+            new_message = Messages(author=author, before=before,
+                                   js_message=str({"name": name, "text": text, "id_user": current_user.id}))
 
             db_sess.add(new_message)
             db_sess.commit()
@@ -389,7 +390,7 @@ def edit_home(id):
                                        form=form,
                                        title='Редактирование профиля')
 
-        if form.update_setup.data and form.update_setup_confirm.data:
+        if form.update_setup.data:
             user.setup = get_setup()
 
         user.name = name
@@ -504,6 +505,9 @@ def registration():
         if not check_password[0]:
             return render_template('registration.html', message=f"Ошибка регистрации: "
                                                                 f"{check_password[1]}", form=form, title='Регистрация')
+        if form.password.data != form.repeat_password.data:
+            return render_template('registration.html', message=f"Ошибка регистрации: "
+                                                                f"пароли не совпадают", form=form, title='Регистрация')
 
         setup = get_setup()
         user = User(
