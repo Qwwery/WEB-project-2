@@ -903,6 +903,14 @@ def friends():
         friends_images.append(encoded_string)
     if request.method == 'POST' and 'search' in request.form and len(request.form['search'].strip()) > 0:
         friends = list(filter(lambda x: request.form['search'].lower() in x.name.lower(), friends))
+
+        friends_images = []
+        for elem in friends:
+            image = db_sess.query(Images).filter(Images.user_id == elem.id).first().b64_image
+            encoded_string = str(image)
+            encoded_string = encoded_string.replace("b'", '').replace("'", '')
+            friends_images.append(encoded_string)
+
         return render_template('friends.html', friends=friends, title='Друзья', action='btn',
                                image=friends_images)
     elif request.method == 'POST' and 'all' in request.form:
