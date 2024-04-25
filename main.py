@@ -140,7 +140,6 @@ def get_message():
     encoded_string = encoded_string.replace("b'", '').replace("'", '')
     name_chat = db_sess.query(User).filter(User.id == before).first().name
 
-
     messages = db_sess.query(Messages).filter(((Messages.author == author) & (Messages.before == before)) | (
             (Messages.author == before) & (Messages.before == author))).all()
 
@@ -201,8 +200,8 @@ def get_message():
             result_message.append(ast.literal_eval(message.js_message))
         info = {
             'messages': result_message,
-                'image': encoded_string,
-                'name_chat': name_chat
+            'image': encoded_string,
+            'name_chat': name_chat
         }
         return render_template('sms.html', **info, form=form)
 
@@ -904,10 +903,13 @@ def friends():
         friends_images.append(encoded_string)
     if request.method == 'POST' and 'search' in request.form and len(request.form['search'].strip()) > 0:
         friends = list(filter(lambda x: request.form['search'].lower() in x.name.lower(), friends))
-        return render_template('friends.html', friends=friends, title='Друзья', action='btn', image=friends_images)
+        return render_template('friends.html', friends=friends, title='Друзья', action='btn',
+                               image=friends_images)
     elif request.method == 'POST' and 'all' in request.form:
-        return render_template('friends.html', friends=friends, title='Друзья', action='', image=friends_images)
-    return render_template('friends.html', friends=friends, title='Друзья', action='', image=friends_images)
+        return render_template('friends.html', friends=friends, title='Друзья', action='',
+                               image=friends_images)
+    return render_template('friends.html', friends=friends, title='Друзья', action='',
+                           image=friends_images)
 
 
 @app.route('/friend_requests')
