@@ -6,7 +6,9 @@
     <input align="center" type="text" class="form-control" placeholder="Введите имя пользователя, которого вы ищите."
            aria-label="Username" aria-describedby="basic-addon1" id="name" name="search"><br>
     {% for user in users %}
+
         <hr>
+        <img src="data:image/png;base64, {{ image[loop.index0] }}" alt="ava" width="20" height="25"/>
         {% if user.confirmed == False %}
             <a href="user/{{ user.id }}" class="links">{{ user.name }} {{ user.surname }}</a>
         {% else %}

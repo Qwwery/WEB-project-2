@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, abort
 from sqlalchemy.orm import Session
 
+import base64
 import ast
 from time import time
 import requests
@@ -10,6 +11,7 @@ from models.users import User  # test 2
 from models.news import News
 from models.friends import Friends
 from models.messages import Messages
+from models.images import Images
 from models import db_session
 from flask_login import LoginManager, login_user, current_user, logout_user, login_required
 from forms.login import LoginForm
@@ -35,20 +37,19 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'ebfqwejg;asdlp1LJNpjqwfffaffaWFEKjwEKHFNLk;fwfbjnl42QEW:jFKqeb'
 db_session.global_init("db/db.db")
 
-
 translate = t = {
-        'й': 'q', 'ц': 'w', 'у': 'e', 'к': 'r', 'е': 't', 'н': 'y', 'г': 'u',
-        'ш': 'i', 'щ': 'o', 'з': 'p', 'х': '[', 'ъ': ']', 'ф': 'a', 'ы': 's',
-        'в': 'd', 'а': 'f', 'п': 'g', 'р': 'h', 'о': 'j', 'л': 'k', 'д': 'l',
-        'ж': ';', 'э': "'", 'я': 'z', 'ч': 'x', 'с': 'c', 'м': 'v', 'и': 'b',
-        'т': 'n', 'ь': 'm', 'б': ',', 'ю': '.', 'Й': 'Q', 'Ц': 'W', 'У': 'E',
-        'К': 'R', 'Е': 'T', 'Н': 'Y', 'Г': 'U', 'Ш': 'I', 'Щ': 'O', 'З': 'P',
-        'Х': '{', 'Ъ': '}', 'Ф': 'A', 'Ы': 'S', 'В': 'D', 'А': 'F', 'П': 'G',
-        'Р': 'H', 'О': 'J', 'Л': 'K', 'Д': 'L', 'Ж': ':', 'Э': '"', 'Я': 'Z',
-        'Ч': 'X', 'С': 'C', 'М': 'V', 'И': 'B', 'Т': 'N', 'Ь': 'M', 'Б': '<',
-        'Ю': '>', '"': '@', '№': '#', ';': '$', ':': '^', '?': '&', '.': '/',
-        ',': '?'
-    }
+    'й': 'q', 'ц': 'w', 'у': 'e', 'к': 'r', 'е': 't', 'н': 'y', 'г': 'u',
+    'ш': 'i', 'щ': 'o', 'з': 'p', 'х': '[', 'ъ': ']', 'ф': 'a', 'ы': 's',
+    'в': 'd', 'а': 'f', 'п': 'g', 'р': 'h', 'о': 'j', 'л': 'k', 'д': 'l',
+    'ж': ';', 'э': "'", 'я': 'z', 'ч': 'x', 'с': 'c', 'м': 'v', 'и': 'b',
+    'т': 'n', 'ь': 'm', 'б': ',', 'ю': '.', 'Й': 'Q', 'Ц': 'W', 'У': 'E',
+    'К': 'R', 'Е': 'T', 'Н': 'Y', 'Г': 'U', 'Ш': 'I', 'Щ': 'O', 'З': 'P',
+    'Х': '{', 'Ъ': '}', 'Ф': 'A', 'Ы': 'S', 'В': 'D', 'А': 'F', 'П': 'G',
+    'Р': 'H', 'О': 'J', 'Л': 'K', 'Д': 'L', 'Ж': ':', 'Э': '"', 'Я': 'Z',
+    'Ч': 'X', 'С': 'C', 'М': 'V', 'И': 'B', 'Т': 'N', 'Ь': 'M', 'Б': '<',
+    'Ю': '>', '"': '@', '№': '#', ';': '$', ':': '^', '?': '&', '.': '/',
+    ',': '?'
+}
 
 
 def main():
@@ -64,6 +65,7 @@ login_manager.init_app(app)
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html')
+
 
 @app.errorhandler(401)
 def page_not_found(e):
@@ -101,11 +103,17 @@ def all_users():
 
     db_sess = db_session.create_session()
     users = db_sess.query(User).filter(User.id != current_user.id).all()
+    all_image = []
+    for image in db_sess.query(Images).filter(Images.id != current_user.id).all():
+        image = image.b64_image
+        encoded_string = str(image)
+        encoded_string = encoded_string.replace("b'", '').replace("'", '')
+        all_image.append(encoded_string)
     users = sorted(users, key=lambda x: (x.surname, x.name))
     if request.method == 'POST' and 'search' in request.form and len(request.form['search'].strip()) > 0:
         users = list(filter(lambda x: request.form['search'].lower() in x.name.lower(), users))
-        return render_template('all_users.html', users=users, action='btn')
-    return render_template('all_users.html', users=users, action='')
+        return render_template('all_users.html', users=users, action='btn', image=all_image)
+    return render_template('all_users.html', users=users, action='', image=all_image)
 
 
 @login_required
@@ -118,14 +126,19 @@ def get_message():
     data = request.args
 
     try:
-        author = data['author']
+        author = current_user.id
         before = data['before']
-        assert int(current_user.id) == int(author)
         friends = db_sess.query(Friends).filter(Friends.first_id == author, Friends.second_id == before).first()
         assert friends
 
     except Exception:
         return abort(404)
+
+    who_image = db_sess.query(Images).filter(Images.id == before).first().b64_image
+    encoded_string = str(who_image)
+    encoded_string = encoded_string.replace("b'", '').replace("'", '')
+    name_chat = db_sess.query(User).filter(User.id == before).first().name
+
 
     messages = db_sess.query(Messages).filter(((Messages.author == author) & (Messages.before == before)) | (
             (Messages.author == before) & (Messages.before == author))).all()
@@ -140,60 +153,55 @@ def get_message():
 
     form = SmsForm()
     if request.method == 'POST':
-        if 'btn_submit' in request.form:
-            db_sess = db_session.create_session()
-            before = db_sess.query(Friends).filter(Friends.id_friends == data['id_friends'],
-                                                   Friends.first_id == data['id_user']).first().second_id
-            if data['message']:
-                message = Messages(author=int(data['id_user']), message=data['message'], before=int(before))
-                db_sess.add(message)
-                db_sess.commit()
-            else:
-                return
-            user = db_sess.query(User).filter(User.id == data['id_user']).first().name
+        if request.form['new_message'] == '':
             return redirect(f'/messages?before={before}')
-        elif 'btn_translate_eng' in request.form:
-            print(request.form['new_message'])
+        if 'btn_translate_eng' in request.form:
             result = make_translate(request.form['new_message'], rus_to_eng)
-            print(result)
             result_message = []
             for message in messages:
                 result_message.append(ast.literal_eval(message.js_message))
             info = {
                 'messages': result_message,
-                'trans_gey_gey_gey': result
+                'trans_gey_gey_gey': result,
+                'image': encoded_string,
+                'name_chat': name_chat
             }
             return render_template('sms.html', **info, form=form)
         elif 'btn_translate_russ' in request.form:
-            print(request.form['new_message'])
             result = make_translate(request.form['new_message'], eng_to_rus)
-            print(result)
             result_message = []
             for message in messages:
                 result_message.append(ast.literal_eval(message.js_message))
             info = {
                 'messages': result_message,
-                'trans_gey_gey_gey': result
+                'trans_gey_gey_gey': result,
+                'image': encoded_string,
+                'name_chat': name_chat
             }
             return render_template('sms.html', **info, form=form)
 
         else:
             name = current_user.name
             text = request.form['new_message']
+            if not text:
+                redirect(f'/messages?before={before}')
             response = requests.post(url="http://127.0.0.1:5000/send", json={"name": name, "text": text})
 
-            new_message = Messages(author=author, before=before, js_message=str({"name": name, "text": text, "id_user": current_user.id}))
+            new_message = Messages(author=author, before=before,
+                                   js_message=str({"name": name, "text": text, "id_user": current_user.id}))
 
             db_sess.add(new_message)
             db_sess.commit()
-            return redirect(f'/messages?author={author}&before={before}')
+            return redirect(f'/messages?before={before}')
 
     elif request.method == 'GET':
         result_message = []
         for message in messages:
             result_message.append(ast.literal_eval(message.js_message))
         info = {
-            'messages': result_message
+            'messages': result_message,
+                'image': encoded_string,
+                'name_chat': name_chat
         }
         return render_template('sms.html', **info, form=form)
 
@@ -256,8 +264,24 @@ def first():
         'authors': authors,
         'confirm_check': confirmed_check
     }
+    if current_user.is_authenticated:
+        image = db_sess.query(Images).filter(Images.user_id == current_user.id).first()
+        if not image:
+            with open(f'static/img/user.jpg', 'rb') as file:
+                encoding_image = base64.b64encode(file.read())
+            image = Images(user_id=current_user.id,
+                           b64_image=encoding_image)
+            db_sess.add(image)
+            db_sess.commit()
 
-    return render_template('news.html', **info, title='NaSvyazi', text=text, action='')
+    result_image = []
+    for elem in news:
+        image = db_sess.query(Images).filter(Images.id == elem.id).first().b64_image
+        encoded_string = str(image)
+        encoded_string = encoded_string.replace("b'", '').replace("'", '')
+        result_image.append(encoded_string)
+
+    return render_template('news.html', **info, title='NaSvyazi', text=text, action='', image=result_image)
 
 
 @app.route('/edit_news/<int:id>', methods=['GET', 'POST'])
@@ -426,9 +450,27 @@ def her():
             return render_template('her.html', message='поддерживаются только файлы с '
                                                        'расширением png и jpg')
 
-        with open(f'static/img/{new_file}', 'wb') as file:
+        with open(f'static/img/ava/{new_file}', 'wb') as file:
             file.write(f.read())
-        return render_template('home.html')
+
+        with open(f'static/img/ava/{new_file}', 'rb') as file:
+            encoding_image = base64.b64encode(file.read())
+
+        db_sess = db_session.create_session()
+        image = db_sess.query(Images).filter(Images.user_id == current_user.id).first()
+        if not image:
+            with open(f'static/img/ava/{new_file}', 'rb') as file:
+                encoding_image = base64.b64encode(file.read())
+            image = Images(user_id=current_user.id,
+                           b64_image=encoding_image)
+            db_sess.add(image)
+        else:
+            image.b64_image = encoding_image
+            db_sess.add(image)
+        db_sess.commit()
+        os.remove(f'static/img/ava/{new_file}')
+
+        return redirect(f'home/{current_user.id}')
 
     return render_template('her.html')
 
@@ -615,13 +657,27 @@ def home(id):
     if id_user == id:
         db_sess = db_session.create_session()
         news = db_sess.query(News).filter(News.author == current_user.id).all()
+
+        ava = db_sess.query(Images).filter(Images.user_id == current_user.id).first()
+        if not ava:
+            with open('static/img/user.jpg', 'rb') as image_file:
+                encoded_string = base64.b64encode(image_file.read())
+            image = Images(user_id=current_user.id,
+                           b64_image=encoded_string)
+            db_sess.add(image)
+            db_sess.commit()
+        else:
+            encoded_string = ava.b64_image
+        encoded_string = str(encoded_string)
+        encoded_string = encoded_string.replace("b'", '').replace("'", '')
+
         news = news[::-1]
         if 'confirm' in request.form:
             send_email(db_sess)
             return render_template('home.html', title=current_user.name,
                                    text='Зайдите на почту и подтвердите свою учетную запись в течение трёх минут',
                                    news=news)
-        return render_template('home.html', title=current_user.name, text='', news=news)
+        return render_template('home.html', title=current_user.name, text='', news=news, ava=encoded_string)
     else:
         abort(404)
 
@@ -660,16 +716,23 @@ def search_user():
 
     db_sess = db_session.create_session()
     all_users = db_sess.query(User).filter(User.id != current_user.id).all()
-
     not_friends = []
+    not_friends_image = []
     for elem in all_users:
         check_users = db_sess.query(Friends).filter(Friends.first_id == current_user.id,
                                                     Friends.second_id == elem.id).first()
         if not check_users or check_users.mans_attitude != 'friends':
+            image = db_sess.query(Images).filter(Images.user_id == elem.id).first()
+            if image:
+                image = image.b64_image
+                encoded_string = str(image)
+                encoded_string = encoded_string.replace("b'", '').replace("'", '')
+                not_friends_image.append(encoded_string)
             not_friends.append(elem)
 
     info = {
-        'users': not_friends
+        'users': not_friends,
+        'image': not_friends_image
     }
 
     if request.method == 'POST' and 'search' in request.form and len(request.form['search'].strip()) > 0:
@@ -695,8 +758,15 @@ def user(id):
 
     if current_user.is_authenticated and current_user.id == id:
         return redirect(f'/home/{id}')
+    not_friends_image = []
+    image = db_sess.query(Images).filter(Images.user_id == id).first()
+    if image:
+        image = image.b64_image
+        encoded_string = str(image)
+        encoded_string = encoded_string.replace("b'", '').replace("'", '')
 
     info = {
+        'image': encoded_string,
         'user': user
     }
     if request.method == 'POST':
@@ -820,12 +890,18 @@ def friends():
     friends_id = list(map(lambda x: x.first_id, friends_info))
     friends = db_sess.query(User).filter(User.id.in_(friends_id)).all()
 
+    friends_images = []
+    for elem in friends:
+        image = db_sess.query(Images).filter(Images.user_id == elem.id).first().b64_image
+        encoded_string = str(image)
+        encoded_string = encoded_string.replace("b'", '').replace("'", '')
+        friends_images.append(encoded_string)
     if request.method == 'POST' and 'search' in request.form and len(request.form['search'].strip()) > 0:
         friends = list(filter(lambda x: request.form['search'].lower() in x.name.lower(), friends))
-        return render_template('friends.html', friends=friends, title='Друзья', action='btn')
+        return render_template('friends.html', friends=friends, title='Друзья', action='btn', image=friends_images)
     elif request.method == 'POST' and 'all' in request.form:
-        return render_template('friends.html', friends=friends, title='Друзья', action='')
-    return render_template('friends.html', friends=friends, title='Друзья', action='')
+        return render_template('friends.html', friends=friends, title='Друзья', action='', image=friends_images)
+    return render_template('friends.html', friends=friends, title='Друзья', action='', image=friends_images)
 
 
 @app.route('/friend_requests')
@@ -838,14 +914,20 @@ def friend_requests():
                                                     Friends.mans_attitude == 'received').all()
     if not current_user:
         return redirect('/')
-
+    all_image = []
     users = []
     for user in friend_requests:
         user = db_sess.query(User).filter(User.id == user.second_id).first()
         users.append(user)
+        image = db_sess.query(Images).filter(Images.user_id == user.id).first().b64_image
+        encoded_string = str(image)
+        encoded_string = encoded_string.replace("b'", '').replace("'", '')
+        all_image.append(encoded_string)
+
     info = {
         'users': users,
-        'title': 'Заявки в друзья'
+        'title': 'Заявки в друзья',
+        'image': all_image,
     }
     return render_template('friend_requests.html', **info)
 

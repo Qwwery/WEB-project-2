@@ -32,8 +32,10 @@
             </a>
         </div>
         {% endif %}
-
     {% if current_user.is_authenticated %}
+        <div align="right">
+            <img src="data:image/png;base64, {{ image[loop.index0] }}" alt="ava" width="20" height="25"/>
+        </div>
         {% if current_user.id == new.author %}
             {% if confirm_check[loop.index - 1] == False %}
                 <p align="right"><a href="home/{{ new.author }}" class="links transfate">{{ authors[loop.index - 1] }}</a></p>
