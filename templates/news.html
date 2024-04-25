@@ -53,8 +53,14 @@
         {% endif %}
     {% else %}
         {% if confirm_check[loop.index - 1] == False %}
+            <div align="right">
+                <img src="data:image/png;base64, {{ image[loop.index0] }}" alt="ava" width="20" height="25"/>
+            </div>
             <p align="right">{{ authors[loop.index - 1] }}</p>
         {% else %}
+        <div align="right">
+            <img src="data:image/png;base64, {{ image[loop.index0] }}" alt="ava" width="20" height="25"/>
+        </div>
         <h5 align="right">{{ authors[loop.index - 1] }}<img src="{{url_for('static', filename='img/galka.png')}}" style="max-width: 3.14%"></h5>
         {% endif %}
     {% endif %}
