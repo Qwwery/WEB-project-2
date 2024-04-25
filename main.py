@@ -34,7 +34,7 @@ import smtplib
 from email.mime.text import MIMEText
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'ebfqwejg;asdlp1LJNpjqwfffaffaWFEKjwEKHFNLk;fwfbjnl42QEW:jFKqeb'
+app.config['SECRET_KEY'] = 'ebfqwejg;asdlp1LJNpjqwfffaffaWFEKjwEKHFNLk;fwfbjnl42QEW:jFKqebwqdwqdwqedasjdnsdcoewjicbnewocusdcnbosdfcewap;nzcxvofsdvu'
 db_session.global_init("db/db.db")
 
 translate = t = {
