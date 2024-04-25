@@ -34,7 +34,8 @@ import smtplib
 from email.mime.text import MIMEText
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'ebfqwejg;asdlp1LJNpjqwfffaffaWFEKjwEKHFNLk;fwfbjnl42QEW:jFKqebwqdwqdwqedasjdnsdcoewjicbnewocusdcnbosdfcewap;nzcxvofsdvu'
+app.config['SECRET_KEY'] = ('ebfqwejg;asdlp1LJNpjqwfffaffaWFEKjwEKHFNLk;fwfbjnl42QEW:jFKqebwqdwqdwqedasjdnsdcoewjicbne'
+                            'wocusdcnbosdfcewap;nzcxvofsdvu')
 db_session.global_init("db/db.db")
 
 translate = t = {
@@ -281,7 +282,8 @@ def first():
         encoded_string = encoded_string.replace("b'", '').replace("'", '')
         result_image.append(encoded_string)
 
-    return render_template('news.html', **info, title='NaSvyazi', text=text, action='', image=result_image)
+    return render_template('news.html', **info, title='NaSvyazi', text=text, action='',
+                           image=result_image)
 
 
 @app.route('/edit_news/<int:id>', methods=['GET', 'POST'])
@@ -679,8 +681,9 @@ def home(id):
             send_email(db_sess)
             return render_template('home.html', title=current_user.name,
                                    text='Зайдите на почту и подтвердите свою учетную запись в течение трёх минут',
-                                   news=news)
-        return render_template('home.html', title=current_user.name, text='', news=news, ava=encoded_string)
+                                   news=news, ava=encoded_string)
+        return render_template('home.html', title=current_user.name, text='', news=news,
+                               ava=encoded_string)
     else:
         abort(404)
 
