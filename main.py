@@ -153,7 +153,9 @@ def get_message():
             user = db_sess.query(User).filter(User.id == data['id_user']).first().name
             return redirect(f'/messages?before={before}')
         elif 'btn_translate_eng' in request.form:
-            result = make_translate(data['new_message'], rus_to_eng)
+            print(request.form['new_message'])
+            result = make_translate(request.form['new_message'], rus_to_eng)
+            print(result)
             result_message = []
             for message in messages:
                 result_message.append(ast.literal_eval(message.js_message))
@@ -161,9 +163,11 @@ def get_message():
                 'messages': result_message,
                 'trans_gey_gey_gey': result
             }
-            return render_template('sms.html', **info)
+            return render_template('sms.html', **info, form=form)
         elif 'btn_translate_russ' in request.form:
-            result = make_translate(data['new_message'], eng_to_rus)
+            print(request.form['new_message'])
+            result = make_translate(request.form['new_message'], eng_to_rus)
+            print(result)
             result_message = []
             for message in messages:
                 result_message.append(ast.literal_eval(message.js_message))

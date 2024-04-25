@@ -4,7 +4,7 @@
 <body>
 
 <h1 class="h1_sms"> Чат {{name_chat}}</h1>
-<div class="scrole_sms frame_sms" id="message">
+<div class="scrole_sms frame_sms" id="message" style="height: 800px">
     {% for message in messages %}
     <div class="you" style="word-break: break-all"><a href="user/{{ message.id_user }}" style="color: black"><b>{{
         message.name }}</b></a><br> {{ message.text }}
@@ -13,6 +13,7 @@
 </div>
 <form action="#" method="POST" id="post_message" class="sms_login_form center_label">
     {% if trans_gey_gey_gey %}
+
         <input type="text" autofocus="autofocus" name="new_message" id="new_message" placeholder="Написать сообщение"
                style="word-wrap: break-word;
         max-width: 90%;
@@ -29,10 +30,10 @@
         <input type="image" src="https://cdn-icons-png.flaticon.com/512/2550/2550207.png"
                style="width: 23px; height: 20px" onclick="delValue()">
     {% endif %}
-</form>
-<form class="sms_login_form center_label" method="post" autocomplete="off">
-    <button name="btn_translate_eng" type="submit" class="btn btn-success btn_sms">На английский</button>
-    <button name="btn_translate_russ" type="submit" class="btn btn-danger btn_sms">На русский</button>
+<!--</form>-->
+<!--<form class="sms_login_form center_label" method="post" autocomplete="off">-->
+    <button name="btn_translate_russ" type="submit" class="btn btn-danger btn_sms" formmethod="post">На русский</button>
+    <button name="btn_translate_eng" type="submit" class="btn btn-success btn_sms" formmethod="post">На английский</button>
     <br>
 </form>
 </body>
@@ -44,31 +45,40 @@
 </script>
 
 <script>
+    var val = "{{ trans_gey_gey_gey }}";
+    console.log(val)
+    console.log(localStorage)
+    if ("{{ trans_gey_gey_gey }}") {
+        localStorage.setItem("new_message", "{{ trans_gey_gey_gey }}")
+    }
 
     setTimeout(function () {
         location.reload(true);
+        var id = 'new_message';  // обновление + востановление
+        localStorage.setItem(id, global_val)
         document.querySelector(".new_message").focus()
 
     }, 6000);
 
 
-    document.getElementById("new_message").value = getSavedValue("new_message");
+    document.getElementById("new_message").value = getSavedValue("new_message"); // востановление после обновления
 
     function delValue() {
-        var id = 'new_message';  // get the sender's id to save it .
-        var val = ''; // get the value.
+        var id = 'new_message';  // удаление(для отправки)
+        var val = '';
         localStorage.setItem(id, val)
     }
 
     function saveValue(e) {
-        var id = e.id;  // get the sender's id to save it .
-        var val = e.value; // get the value.
-        localStorage.setItem(id, val);// Every time user writing something, the localStorage's value will override .
+        var id = e.id;  // сохранение
+        var val = e.value;
+
+        localStorage.setItem(id, val);
     }
 
     function getSavedValue(v) {
         if (!localStorage.getItem(v)) {
-            return "";// You can change this to your defualt value.
+            return "";// везвращает то, что было сохранено
         }
         return localStorage.getItem(v);
     }
