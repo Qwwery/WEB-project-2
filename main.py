@@ -413,7 +413,7 @@ def edit_home(id):
                                        form=form,
                                        title='Редактирование профиля')
 
-        if form.update_setup.data and form.update_setup_confirm.data:
+        if form.update_setup.data:
             user.setup = get_setup()
 
         user.name = name
@@ -489,7 +489,7 @@ def confirm(confirmation_code):
             user.confirmed = True
             db_sess.commit()
 
-            return render_template('home.html', text='Вы подтвердили вашу учетную запись')
+            return render_template('home.html', text='Вы подтвердили вашу учетную запись', stop='stop')
         else:
             return render_template('confirmed_sms.html', title='NaSvyazi', text='Неизвестная ошибка')
     except Exception as text:
@@ -546,6 +546,9 @@ def registration():
         if not check_password[0]:
             return render_template('registration.html', message=f"Ошибка регистрации: "
                                                                 f"{check_password[1]}", form=form, title='Регистрация')
+        if form.password.data != form.repeat_password.data:
+            return render_template('registration.html', message=f"Ошибка регистрации: "
+                                                                f"пароли не совпадают", form=form, title='Регистрация')
 
         setup = get_setup()
         user = User(

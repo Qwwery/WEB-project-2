@@ -51,7 +51,8 @@
         </p>
         <p>
             {{ form.password.label }}<br>
-            {{ form.password(class="form-control", type="password") }}<br>
+            {{ form.password(class="form-control", type="password") }}
+            <p>Пароль должен содержать не менее 8 символов и не более 30 символов и содержать только латинские буквы и цифры или специальные символы ! @ # $ % ^ & * ( ) _ + - = { } | : ; " < > . ? / '</p>
             {% for error in form.password.errors %}
                 <div class="alert alert-danger" role="alert">
                     {{ error }}
