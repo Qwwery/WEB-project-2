@@ -693,6 +693,9 @@ def user(id):
     db_sess = db_session.create_session()
     user = db_sess.query(User).filter(User.id == id).first()
 
+    if current_user.is_authenticated and current_user.id == id:
+        return redirect(f'/home/{id}')
+
     info = {
         'user': user
     }
