@@ -281,7 +281,7 @@ def first():
             db_sess.commit()
     result_image = []
     for elem in news:
-        image = db_sess.query(Images).filter(Images.user_id == elem.id).first().b64_image
+        image = db_sess.query(Images).filter(Images.user_id == elem.author).first().b64_image
         encoded_string = str(image)
         encoded_string = encoded_string.replace("b'", '').replace("'", '')
         result_image.append(encoded_string)
