@@ -103,13 +103,14 @@ def all_users():
 
     db_sess = db_session.create_session()
     users = db_sess.query(User).filter(User.id != current_user.id).all()
+    users = sorted(users, key=lambda x: (x.surname, x.name))
     all_image = []
     for elem in users:
         image = db_sess.query(Images).filter(Images.user_id == elem.id).first().b64_image
         encoded_string = str(image)
         encoded_string = encoded_string.replace("b'", '').replace("'", '')
         all_image.append(encoded_string)
-    users = sorted(users, key=lambda x: (x.surname, x.name))
+
     if request.method == 'POST' and 'search' in request.form and len(request.form['search'].strip()) > 0:
         users = list(filter(lambda x: request.form['search'].lower() in x.name.lower(), users))
         all_image = []
