@@ -34,8 +34,7 @@ import smtplib
 from email.mime.text import MIMEText
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = ('ebfqwejg;asdaffaWFEKjwEKHFNLk;fwfbjnl42QEW:jFKqebwqdwqdwqedasjdnsdcoewjicbne'
-                            'wocusdcnbosdfcewap;nzcxvofsdvu')
+app.config['SECRET_KEY'] = 'ebfqwejg;asdlp1LJNpjqwfffaffaWFEKjwEKHFNLk;fwfbjnl42QEW:jFKqeb'
 db_session.global_init("db/db.db")
 
 translate = t = {
@@ -104,15 +103,23 @@ def all_users():
 
     db_sess = db_session.create_session()
     users = db_sess.query(User).filter(User.id != current_user.id).all()
-    users = sorted(users, key=lambda x: (x.surname, x.name))
     all_image = []
-    for image in db_sess.query(Images).filter(Images.id != current_user.id).all():
-        image = image.b64_image
+    for elem in users:
+        image = db_sess.query(Images).filter(Images.user_id == elem.id).first().b64_image
         encoded_string = str(image)
         encoded_string = encoded_string.replace("b'", '').replace("'", '')
         all_image.append(encoded_string)
+    users = sorted(users, key=lambda x: (x.surname, x.name))
     if request.method == 'POST' and 'search' in request.form and len(request.form['search'].strip()) > 0:
         users = list(filter(lambda x: request.form['search'].lower() in x.name.lower(), users))
+        all_image = []
+        for elem in users:
+            print(elem.id)
+            image = db_sess.query(Images).filter(Images.user_id == elem.id).first()
+            print(image.user_id)
+            encoded_string = str(image.b64_image)
+            encoded_string = encoded_string.replace("b'", '').replace("'", '')
+            all_image.append(encoded_string)
         return render_template('all_users.html', users=users, action='btn', image=all_image)
     return render_template('all_users.html', users=users, action='', image=all_image)
 
@@ -135,7 +142,7 @@ def get_message():
     except Exception:
         return abort(404)
 
-    who_image = db_sess.query(Images).filter(Images.id == before).first().b64_image
+    who_image = db_sess.query(Images).filter(Images.user_id == before).first().b64_image
     encoded_string = str(who_image)
     encoded_string = encoded_string.replace("b'", '').replace("'", '')
     name_chat = db_sess.query(User).filter(User.id == before).first().name
@@ -220,8 +227,6 @@ def webhook():
 @login_manager.user_loader
 def load_user(user_id):
     db_sess = db_session.create_session()
-
-    # return db_sess.query(User).get(user_id)
     return db_sess.get(User, user_id)
 
 
@@ -234,7 +239,7 @@ def first():
             user = db_sess.query(User).filter(User.email == current_user.email).first()
             confirmation_code = serializer.dumps(user.id, salt='confirm-salt')
             confirm_url = f'{request.host}/confirm/{confirmation_code}'
-            msg = MIMEText(f'''Подтвердите учетную запись от NaSvyazi, перейдя по ссылке: {confirm_url}.\n 
+            msg = MIMEText(f'''Подтвердите учетную запись от NaSvyazi, перейдя по ссылке: https://{confirm_url}.\n 
             Если вы не отправляли запрос, игнорируйте это сообщение''', 'html')
             msg['Subject'] = 'Account Confirmation Required'
             msg['From'] = 'valerylarionov06@gmail.com'
@@ -275,11 +280,11 @@ def first():
             db_sess.commit()
     result_image = []
     for elem in news:
-        image = db_sess.query(Images).filter(Images.id == elem.id).first().b64_image
+        image = db_sess.query(Images).filter(Images.user_id == elem.id).first().b64_image
         encoded_string = str(image)
         encoded_string = encoded_string.replace("b'", '').replace("'", '')
         result_image.append(encoded_string)
-    result_image = result_image[::-1]
+
     return render_template('news.html', **info, title='NaSvyazi', text=text, action='',
                            image=result_image)
 
