@@ -1,12 +1,10 @@
 from flask import Flask, render_template, request, redirect, abort
-from sqlalchemy.orm import Session
 
 import base64
 import ast
 from time import time
 import requests
 import os
-import random
 from models.users import User  # test 2
 from models.news import News
 from models.friends import Friends
@@ -26,15 +24,13 @@ import datetime
 from check_correct_data_input import check_correct_email, check_correct_password, check_correct_domen_user
 import git
 from api import get_setup
-import json
 import pytz
-import logging
 from itsdangerous import URLSafeTimedSerializer
 import smtplib
 from email.mime.text import MIMEText
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'ebfqwejg;asdlp1LJNpjqwfffaffaWFEKjwEKHFNLk;fwfbjnl42QEW:jFKqeb'
+app.config['SECRET_KEY'] = 'ebfqwejg;asdlp1LJNpjqwfffaffaWFEKjwEKHFNLk;lllldmsdg'
 db_session.global_init("db/db.db")
 
 translate = t = {
