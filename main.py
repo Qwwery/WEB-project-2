@@ -747,13 +747,24 @@ def search_user():
 
     if request.method == 'POST' and 'search' in request.form and len(request.form['search'].strip()) > 0:
         name_search = request.form['search']
+        not_friends_image = []
         if len(name_search.strip()) > 0:
             user_with_search = []
             for elem in not_friends:
                 if name_search.lower() in elem.name.lower():
                     user_with_search.append(elem)
+
+            for elem in user_with_search:
+                image = db_sess.query(Images).filter(Images.user_id == elem.id).first()
+                if image:
+                    image = image.b64_image
+                    encoded_string = str(image)
+                    encoded_string = encoded_string.replace("b'", '').replace("'", '')
+                    not_friends_image.append(encoded_string)
+
             info = {
-                'users': user_with_search
+                'users': user_with_search,
+                'image': not_friends_image
             }
         return render_template('search_user.html', **info, title='Поиск друзей', action='btn')
     elif request.method == 'POST' and 'all' in request.form:
