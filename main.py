@@ -240,7 +240,7 @@ def first():
             user = db_sess.query(User).filter(User.email == current_user.email).first()
             confirmation_code = serializer.dumps(user.id, salt='confirm-salt')
             confirm_url = f'{request.host}/confirm/{confirmation_code}'
-            msg = MIMEText(f'''Подтвердите учетную запись от NaSvyazi, перейдя по ссылке: https://{confirm_url}.\n 
+            msg = MIMEText(f'''Подтвердите учетную запись от NaSvyazi, перейдя по ссылке: {confirm_url}.\n 
             Если вы не отправляли запрос, игнорируйте это сообщение''', 'html')
             msg['Subject'] = 'Account Confirmation Required'
             msg['From'] = 'valerylarionov06@gmail.com'
@@ -491,11 +491,25 @@ def confirm(confirmation_code):
         unconfirmed_user_id = serializer.loads(confirmation_code, salt='confirm-salt', max_age=180)
         user = db_sess.query(User).filter(User.id == unconfirmed_user_id).first()
 
+        ava = db_sess.query(Images).filter(Images.user_id == current_user.id).first()
+        if not ava:
+            with open('static/img/user.jpg', 'rb') as image_file:
+                encoded_string = base64.b64encode(image_file.read())
+            image = Images(user_id=current_user.id,
+                           b64_image=encoded_string)
+            db_sess.add(image)
+            db_sess.commit()
+        else:
+            encoded_string = ava.b64_image
+        encoded_string = str(encoded_string)
+        encoded_string = encoded_string.replace("b'", '').replace("'", '')
+
         if unconfirmed_user_id is not None:
             user.confirmed = True
             db_sess.commit()
 
-            return render_template('home.html', text='Вы подтвердили вашу учетную запись', stop='stop')
+            return render_template('home.html', text='Вы подтвердили вашу учетную запись',
+                                   stop='stop', ava=encoded_string)
         else:
             return render_template('confirmed_sms.html', title='NaSvyazi', text='Неизвестная ошибка')
     except Exception as text:
