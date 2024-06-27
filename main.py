@@ -5,12 +5,17 @@ import ast
 from time import time
 import requests
 import os
+import socketio.packet
 from models.users import User  # test 2
 from models.news import News
 from models.friends import Friends
 from models.messages import Messages
 from models.images import Images
 from models import db_session
+
+import socketio.packet
+from flask import Flask, render_template, request, redirect, abort
+
 from flask_login import LoginManager, login_user, current_user, logout_user, login_required
 from forms.login import LoginForm
 from forms.reg_form import RegForm
@@ -18,22 +23,32 @@ from forms.news_form import NewsForm
 from forms.sms_form import SmsForm
 from forms.edit_news_form import EditNewsForm
 from forms.user_edit import UserEditForm
-from translate import eng_to_rus, rus_to_eng, make_translate
+
 from time_news import get_str_time  # deleted
 import datetime
 from check_correct_data_input import check_correct_email, check_correct_password, check_correct_domen_user
 import git
 from api import get_setup
+import json
 import pytz
+import logging
 from itsdangerous import URLSafeTimedSerializer
 import smtplib
 from email.mime.text import MIMEText
+import sched
+from threading import Lock
+from flask import Flask, render_template, session, request, \
+    copy_current_request_context
+from flask_socketio import SocketIO, emit, join_room, leave_room, \
+    close_room, rooms, disconnect
+
 
 app = Flask(__name__)
+socketio = SocketIO(app, async_mode=None)
 app.config['SECRET_KEY'] = 'ebfqwejg;asdlp1LJNpjqwfffaffaWFEKjwEKHFNLk;lllldmsdg'
 db_session.global_init("db/db.db")
 
-translate = t = {
+trans_copy = {
     'й': 'q', 'ц': 'w', 'у': 'e', 'к': 'r', 'е': 't', 'н': 'y', 'г': 'u',
     'ш': 'i', 'щ': 'o', 'з': 'p', 'х': '[', 'ъ': ']', 'ф': 'a', 'ы': 's',
     'в': 'd', 'а': 'f', 'п': 'g', 'р': 'h', 'о': 'j', 'л': 'k', 'д': 'l',
@@ -46,11 +61,44 @@ translate = t = {
     'Ю': '>', '"': '@', '№': '#', ';': '$', ':': '^', '?': '&', '.': '/',
     ',': '?'
 }
+trans = trans_copy.copy()
+for key, value in trans_copy.items():
+    trans[value] = key
+
+
+@socketio.on('changing_layout')
+def on_changing_layout(data):
+    s = data['message']
+    print(data)
+    s = s.translate(s.maketrans(trans))
+    emit('changing_layout_to', {'s': s})
+
+
+@socketio.on('run_new_message')
+def message(data):
+    db_sess = db_session.create_session()
+    before = db_sess.query(Friends).filter(Friends.second_id == data['id_friends'],
+                                           Friends.first_id == data['id_user']).first().second_id
+    if data['message']:
+        message = Messages(author=int(data['id_user']), message=str(data['message']), before=int(before))
+        db_sess.add(message)
+        db_sess.commit()
+    else:
+        return
+    user = db_sess.query(User).filter(User.id == data['id_user']).first().name
+    print('perfwqafassfasfasfafasfasfa')
+    emit('my_response', {'user_name': user, 'message': data['message'], 'user_id': data['id_user']},
+         to=data['id_friends'])
+
+
+@socketio.event
+def my_event(data):
+    print('make')
+    join_room(data['id_friends'])
 
 
 def main():
-    db_session.global_init("db/db.db")
-    app.run(debug=True)
+    socketio.run(app)
 
 
 serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
@@ -71,25 +119,29 @@ def page_not_found(e):
 database = []
 
 
-@app.route('/send', methods=['POST'])
-def send():
-    data = request.json
+@app.route('/messages')
+def messages():
+    db_sess = db_session.create_session()
+    print(request.args.get('before'))
+    friends = db_sess.query(Friends).filter(Friends.first_id == current_user.id,
+                                            Friends.second_id == request.args.get('before')).first().second_id
+    messages = db_sess.query(Messages).filter(((Messages.author == current_user.id) & (Messages.before == request.args.get('before')) | (
+            (Messages.author == request.args.get('before')) & (Messages.before == current_user.id)))).all()
 
-    name = data['name']
-    text = data['text']
+    result_messages = []
+    for message in messages:
+        who = db_sess.query(User).filter(User.id == message.author).first().name
+        result_messages.append({'author': who, 'message': message.message, 'id': message.author})
 
-    if not isinstance(data, dict) or 'name' not in data or 'text' not in data:
-        return abort(404)
-
-    message = {
-        'name': name,
-        'text': text,
-        'time': time()
+    info = {
+        'id_friends': friends,
+        'messages': result_messages,
+        'u_friends': request.args.get('before'),
+        'who': request.args.get('before'),
+        'title': db_sess.query(User).filter(User.id == request.args.get('before')).first().name
     }
 
-    database.append(message)
-
-    return {'ok': True}
+    return render_template('sms.html', **info)
 
 
 @app.route('/all_users', methods=['GET', 'POST'])
@@ -121,93 +173,93 @@ def all_users():
     return render_template('all_users.html', users=users, action='', image=all_image)
 
 
-@login_required
-@app.route('/messages', methods=['GET', 'POST'])
-def get_message():
-    if not current_user.is_authenticated:
-        return abort(404)
-
-    db_sess = db_session.create_session()
-    data = request.args
-
-    try:
-        author = current_user.id
-        before = data['before']
-        friends = db_sess.query(Friends).filter(Friends.first_id == author, Friends.second_id == before).first()
-        assert friends
-
-    except Exception:
-        return abort(404)
-
-    who_image = db_sess.query(Images).filter(Images.user_id == before).first().b64_image
-    encoded_string = str(who_image)
-    encoded_string = encoded_string.replace("b'", '').replace("'", '')
-    name_chat = db_sess.query(User).filter(User.id == before).first().name
-
-    messages = db_sess.query(Messages).filter(((Messages.author == author) & (Messages.before == before)) | (
-            (Messages.author == before) & (Messages.before == author))).all()
-
-    if messages is None:
-        if friends.mans_attitude == 'friends':
-            messages = Messages(author=author, before=before, js_message='{}')
-            db_sess.add(messages)
-            db_sess.commit()
-        else:
-            abort(404)
-
-    form = SmsForm()
-    if request.method == 'POST':
-        if request.form['new_message'] == '':
-            return redirect(f'/messages?before={before}')
-        if 'btn_translate_eng' in request.form:
-            result = make_translate(request.form['new_message'], rus_to_eng)
-            result_message = []
-            for message in messages:
-                result_message.append(ast.literal_eval(message.js_message))
-            info = {
-                'messages': result_message,
-                'trans_gey_gey_gey': result,
-                'image': encoded_string,
-                'name_chat': name_chat
-            }
-            return render_template('sms.html', **info, form=form)
-        elif 'btn_translate_russ' in request.form:
-            result = make_translate(request.form['new_message'], eng_to_rus)
-            result_message = []
-            for message in messages:
-                result_message.append(ast.literal_eval(message.js_message))
-            info = {
-                'messages': result_message,
-                'trans_gey_gey_gey': result,
-                'image': encoded_string,
-                'name_chat': name_chat
-            }
-            return render_template('sms.html', **info, form=form)
-
-        else:
-            name = current_user.name
-            text = request.form['new_message']
-            if not text:
-                redirect(f'/messages?before={before}')
-            response = requests.post(url="http://127.0.0.1:5000/send", json={"name": name, "text": text})
-
-            new_message = Messages(author=author, before=before,
-                                   js_message=str({"name": name, "text": text, "id_user": current_user.id}))
-
-            db_sess.add(new_message)
-            db_sess.commit()
-            return redirect(f'/messages?before={before}')
-
-    elif request.method == 'GET':
-        result_message = []
-        for message in messages:
-            result_message.append(ast.literal_eval(message.js_message))
-        info = {
-            'messages': result_message,
-            'image': encoded_string,
-            'name_chat': name_chat
-        }
-        return render_template('sms.html', **info, form=form)
+# @login_required
+# @app.route('/messages', methods=['GET', 'POST'])
+# def get_message():
+#     if not current_user.is_authenticated:
+#         return abort(404)
+#
+#     db_sess = db_session.create_session()
+#     data = request.args
+#
+#     try:
+#         author = current_user.id
+#         before = data['before']
+#         friends = db_sess.query(Friends).filter(Friends.first_id == author, Friends.second_id == before).first()
+#         assert friends
+#
+#     except Exception:
+#         return abort(404)
+#
+#     who_image = db_sess.query(Images).filter(Images.user_id == before).first().b64_image
+#     encoded_string = str(who_image)
+#     encoded_string = encoded_string.replace("b'", '').replace("'", '')
+#     name_chat = db_sess.query(User).filter(User.id == before).first().name
+#
+#     messages = db_sess.query(Messages).filter(((Messages.author == author) & (Messages.before == before)) | (
+#             (Messages.author == before) & (Messages.before == author))).all()
+#
+#     if messages is None:
+#         if friends.mans_attitude == 'friends':
+#             messages = Messages(author=author, before=before, js_message='{}')
+#             db_sess.add(messages)
+#             db_sess.commit()
+#         else:
+#             abort(404)
+#
+#     form = SmsForm()
+#     if request.method == 'POST':
+#         if request.form['new_message'] == '':
+#             return redirect(f'/messages?before={before}')
+#         if 'btn_translate_eng' in request.form:
+#             result = make_translate(request.form['new_message'], rus_to_eng)
+#             result_message = []
+#             for message in messages:
+#                 result_message.append(ast.literal_eval(message.js_message))
+#             info = {
+#                 'messages': result_message,
+#                 'trans_gey_gey_gey': result,
+#                 'image': encoded_string,
+#                 'name_chat': name_chat
+#             }
+#             return render_template('sms.html', **info, form=form)
+#         elif 'btn_translate_russ' in request.form:
+#             result = make_translate(request.form['new_message'], eng_to_rus)
+#             result_message = []
+#             for message in messages:
+#                 result_message.append(ast.literal_eval(message.js_message))
+#             info = {
+#                 'messages': result_message,
+#                 'trans_gey_gey_gey': result,
+#                 'image': encoded_string,
+#                 'name_chat': name_chat
+#             }
+#             return render_template('sms.html', **info, form=form)
+#
+#         else:
+#             name = current_user.name
+#             text = request.form['new_message']
+#             if not text:
+#                 redirect(f'/messages?before={before}')
+#             response = requests.post(url="http://127.0.0.1:5000/send", json={"name": name, "text": text})
+#
+#             new_message = Messages(author=author, before=before,
+#                                    js_message=str({"name": name, "text": text, "id_user": current_user.id}))
+#
+#             db_sess.add(new_message)
+#             db_sess.commit()
+#             return redirect(f'/messages?before={before}')
+#
+#     elif request.method == 'GET':
+#         result_message = []
+#         for message in messages:
+#             result_message.append(ast.literal_eval(message.js_message))
+#         info = {
+#             'messages': result_message,
+#             'image': encoded_string,
+#             'name_chat': name_chat
+#         }
+#         return render_template('sms.html', **info, form=form)
 
 
 @app.route('/secret_update', methods=["POST"])
